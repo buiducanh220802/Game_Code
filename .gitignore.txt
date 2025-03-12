@@ -1,0 +1,4 @@
+# Visual Studio Code
+.vscode/       # Thư mục chứa các cấu hình workspace của Visual Studio Code
+src/	
+
