@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #include <SDL2/SDL.h>
 #include <iostream>
 #include <vector>
@@ -134,3 +135,12 @@ int main()
     closeSDL();
     return 0;
 }
+=======
+#include <iostream>
+using namespace std;
+int main()
+{
+    cout << "Wellcome to my project" << endl;
+    return 0;
+}
+>>>>>>> 623922e85b40936548df394eb62ef84409d89dd6
