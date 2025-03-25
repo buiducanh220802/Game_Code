@@ -1,0 +1,19 @@
+﻿# bỏ mấy file của visual studio
+*.sln
+*.suo
+*.sdf
+*.vcxproj*
+*.user
+*.ncb
+*.pdb
+*.ipch
+
+# bỏ folder build và debug
+Debug/
+Release/
+x64/
+.vs/
+
+# bỏ file hệ thống
+.DS_Store
+Thumbs.db
