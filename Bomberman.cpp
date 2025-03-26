@@ -96,7 +96,6 @@ void renderHUD(SDL_Renderer* renderer, int level, int timeLeft) {
     renderText(renderer, "Level: " + std::to_string(level), 20, 5);
     renderText(renderer, "Time: " + std::to_string(timeLeft / 60) + ":" + (timeLeft % 60 < 10 ? "0" : "") + std::to_string(timeLeft % 60), SCREEN_WIDTH - 120, 5);
 }
-
 void cleanup(SDL_Window* window, SDL_Renderer* renderer) {
     Mix_FreeMusic(backgroundMusic);
     Mix_FreeChunk(explosionSound);
@@ -139,7 +138,7 @@ int main(int argc, char* argv[]) {
         }
     }
     
-    Player player;
+    Player player(&map);
     player.init(renderer);
     Map gameMap;
     Bomb bomb(renderer, &gameMap, &player, enemies);

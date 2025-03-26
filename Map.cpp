@@ -35,7 +35,8 @@ void Map::loadFromFile(const std::string& filename) {
 
     int level, rows, cols;
     file >> level >> rows >> cols;
-    file.ignore();
+    file >> std::ws;
+    /*file.ignore();*/
 
     if (rows <= 0 || cols <= 0) {
         std::cerr << "Invalid map size in file: " << filename << std::endl;
@@ -70,6 +71,16 @@ void Map::loadFromFile(const std::string& filename) {
             } // trên đây là các ký hiệu được mặc định trong bản đồ
         }
     }
+    std::cout << "Loaded map:" << std::endl;
+    for (const auto& row : grid) {
+        for (TileType tile : row) {
+            std::cout << tile; // In số hoặc ký hiệu tương ứng
+        }
+        std::cout << std::endl;
+    }
+
+    std::cout << "Map loaded successfully. Checking (1,1): " << grid[1][1] << std::endl;
+
 }
 // hàm load ảnh cho các biến thành viên
 bool Map::loadTextures(SDL_Renderer* renderer) {
@@ -94,26 +105,38 @@ bool Map::loadTextures(SDL_Renderer* renderer) {
 void Map::render(SDL_Renderer* renderer, int offsetX, int offsetY) {
     for (size_t row = 0; row < grid.size(); ++row) {
         for (size_t col = 0; col < grid[row].size(); ++col) {
-            SDL_Rect dstRect = { (int)col * TILE_SIZE + offsetX, (int)row * TILE_SIZE + offsetY + HUD_HEIGHT, TILE_SIZE, TILE_SIZE };
+            SDL_Rect dstRect = { (int)col * TILE_SIZE + offsetX, (int)row * TILE_SIZE + offsetY, TILE_SIZE, TILE_SIZE };
+
+            // Luôn vẽ grass trước
             SDL_RenderCopy(renderer, grassTexture, nullptr, &dstRect);
 
             SDL_Texture* texture = nullptr;
+
+            // Vẽ tường, gạch hoặc bom
             switch (grid[row][col]) {
             case WALL: texture = wallTexture; break;
             case BRICK: texture = brickTexture; break;
-            case BOMB: texture = bombTexture; break; // Hiển thị bom khi đặt
+            case BOMB: texture = bombTexture; break;
             }
 
             if (texture) {
                 SDL_RenderCopy(renderer, texture, nullptr, &dstRect);
             }
-            // thêm hiển thị vật phẩm sau khi phá gạch (brick)
+
+            // Nếu ô hiện tại là BRICK, không vẽ vật phẩm (vật phẩm vẫn ẩn bên dưới)
+            if (grid[row][col] == BRICK) {
+                continue;
+            }
+
+            // Vẽ vật phẩm nếu không còn gạch
+            texture = nullptr;
             switch (hiddenItems[{row, col}]) {
             case BOMB_ITEM: texture = bombItemTexture; break;
             case FLAME_ITEM: texture = flameItemTexture; break;
             case SPEED_ITEM: texture = speedItemTexture; break;
             case PORTAL: texture = portalTexture; break;
             }
+
             if (texture) {
                 SDL_RenderCopy(renderer, texture, nullptr, &dstRect);
             }
@@ -121,8 +144,10 @@ void Map::render(SDL_Renderer* renderer, int offsetX, int offsetY) {
     }
 }
 
+
 TileType Map::getTile(int x, int y) const { // trả lại tọa độ ô lưới
     if (y < 0 || y >= getHeight() || x < 0 || x >= getWidth()) {
+        std::cerr << "Warning: Invalid tile access (" << x << ", " << y << ")" << std::endl;
         return WALL;
     }
     return grid[y][x];
@@ -132,21 +157,27 @@ bool Map::isWall(int x, int y) const {
     if (x < 0 || x >= getWidth() || y < 0 || y >= getHeight()) {
         return true;
     }
-    return grid[y][x] == WALL;
+
+    TileType tile = grid[y][x];
+    std::cout << "Tile at (" << x << ", " << y << ") = " << tile << std::endl;
+
+    return tile == WALL;
 }
+
 
 bool Map::isBomb(int x, int y) const {
     return grid[y][x] == BOMB;
 }
-
 bool Map::canMove(int x, int y) const {
-    if (x < 0 || x >= getWidth() || y < 0 || y >= getHeight()) return false;
+    int tileX = x / TILE_SIZE;
+    int tileY = y / TILE_SIZE;
 
-    // Kiểm tra tất cả 4 góc của nhân vật (giả sử kích thước 32x32)
-    return getTile(x, y) == GRASS &&
-        getTile(x + 31 / TILE_SIZE, y) == GRASS &&
-        getTile(x, y + 31 / TILE_SIZE) == GRASS &&
-        getTile(x + 31 / TILE_SIZE, y + 31 / TILE_SIZE) == GRASS;
+    if (tileX < 0 || tileX >= getWidth() || tileY < 0 || tileY >= getHeight()) return false;
+
+    return getTile(tileX, tileY) == GRASS &&
+        getTile(tileX + 31 / TILE_SIZE, tileY) == GRASS &&
+        getTile(tileX, tileY + 31 / TILE_SIZE) == GRASS &&
+        getTile(tileX + 31 / TILE_SIZE, tileY + 31 / TILE_SIZE) == GRASS;
 }
 
 
@@ -161,14 +192,6 @@ void Map::destroyTile(int x, int y) {
             grid[y][x] = GRASS;
         }
     }
-}
-
-void Map::removeItem(int x, int y) {
-    TileType tile = getTile(x, y);
-    if (tile == BOMB_ITEM || tile == FLAME_ITEM || tile == SPEED_ITEM) {
-        grid[y][x] = GRASS;
-    }
-
 }
 
 void Map::placeBomb(int x, int y) {

@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <memory>
 #include <iostream>
-Enemy::Enemy(const Enemy& other)
+Enemy::Enemy(const Enemy& other) // hàm constructor 
     : x(other.x), y(other.y), posX(other.posX), posY(other.posY),
     speed(other.speed), direction(other.direction), moving(other.moving),
     isSmart(other.isSmart), enemyTexture(other.enemyTexture), alive(other.alive),
@@ -19,7 +19,7 @@ Enemy::Enemy(const Enemy& other)
     else {
         ai = nullptr; // Nếu other.ai không tồn tại
     }
-}
+} // debug rất mệt khi sử dụng contrỏ hay truyền tham số
 Enemy& Enemy::operator=(const Enemy& other) {
     if (this != &other) {  // Tránh tự gán chính nó
         x = other.x;
@@ -142,6 +142,7 @@ bool Enemy::canMove(int newX, int newY, Map& map) {
 // vẽ Enemy lên màn hình
 void Enemy::render(SDL_Renderer* renderer) {
     SDL_Rect enemyRect = { static_cast<int>(posX), static_cast<int>(posY), 32, 32 };
+ 
     // tạo Rect đẻ xác định vị trí của Enemy dựa trên bản đồ
     if (moving) { // nếu di chuyển hiện thị animation di chuyển
         walkAnimation.render(renderer, static_cast<int>(posX), static_cast<int>(posY));

@@ -30,10 +30,10 @@ public:
     void init(SDL_Renderer* renderer);
     void update(Map& map);
     void render(SDL_Renderer* renderer);
-    std::pair<int, int> getPosition() const; // Hàm lấy vị trí người chơi
+    std::pair<float, float> getPosition() const; // Hàm lấy vị trí người chơi
     void move(int dx, int dy, Map& map);
     void calculateMove(const Uint8* keys, Map& map);
-    bool canMove(int newX, int newY, Map& map);
+    bool canMove(float newX, float newY, Map& map);
     void collectItem(TileType itemType);
     bool reachedPortal(const Map& map, const std::vector<Enemy>& enemies);
     void resetPosition();

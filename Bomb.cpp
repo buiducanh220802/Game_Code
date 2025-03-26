@@ -1,13 +1,13 @@
 ﻿#include "Bomb.h"
 #include <iostream>
 #include <string>
-
+// constructor 
 Bomb::Bomb(SDL_Renderer* renderer, Map* gameMap, Player* player, std::vector<Enemy>& enemies) : map(gameMap), player(player), enemies(enemies) {
-    bombTexture = IMG_LoadTexture(renderer, "D:/Project_1/x64/Debug/res/sprites/bomb.png");
+    bombTexture = IMG_LoadTexture(renderer, "D:/Project_1/x64/Debug/res/sprites/bomb.png"); // load Texxture
     explosionSound = Mix_LoadWAV("D:/Project_1/x64/Debug/res/sounds/BOM_11_M.wav");
     // tải texture cho bom 
 	if (!bombTexture) {
-		std::cerr << "Failed to load bomb texture\n";
+		std::cerr << "Failed to load bomb texture\n"; // nếu có lỗi thông báo lại ra output để dễ debug
 	}
 	// tải các frame cho animation của bom nổ
     for (int i = 0; i < 3; i++) {
@@ -17,15 +17,15 @@ Bomb::Bomb(SDL_Renderer* renderer, Map* gameMap, Player* player, std::vector<Ene
         explosionDown.addFrame(DOWN, IMG_LoadTexture(renderer, ("D:/Project_1/x64/Debug/res/sprites/explosion_vertical_down_last" + index + ".png").c_str()));
         explosionLeft.addFrame(LEFT, IMG_LoadTexture(renderer, ("D:/Project_1/x64/Debug/res/sprites/explosion_horizontal_left_last" + index + ".png").c_str()));
         explosionRight.addFrame(RIGHT, IMG_LoadTexture(renderer, ("D:/Project_1/x64/Debug/res/sprites/explosion_horizontal_right_last" + index + ".png").c_str()));
-    }
-	SDL_Texture* tex = IMG_LoadTexture(renderer, "D:/Project_1/x64/Debug/res/sprites/bomb_exploded1.png");
+    } // các frame thể hiện animation cho bomb nổ
+	SDL_Texture* tex = IMG_LoadTexture(renderer, "D:/Project_1/x64/Debug/res/sprites/bomb_exploded1.png"); // thử log xem có nổ không để dễ debug
 	if (!tex) {
 		std::cerr << "Failed to load explosion texture\n";
 	}
     exploded = false;
 }
 
-Bomb::~Bomb() { // hủy các texture khi hủy đối tượng
+Bomb::~Bomb() { // hủy các texture khi hủy đối tượng descontructor khi sử dụng class
     SDL_DestroyTexture(bombTexture);
 	explosionCenter.~Animation();
 	explosionDown.~Animation();
@@ -85,16 +85,40 @@ void Bomb::render(SDL_Renderer* renderer) {
 }
 // bom ảnh hướng đến enemy và người chơi
 void Bomb::checkExplosionHit() {
-    for (Enemy& enemy : enemies) {  // Duyệt qua vector bằng tham chiếu
-        if (enemy.getX() / 32 == gridX && enemy.getY() / 32 == gridY) {
-            enemy.die();
+    // Xác định phạm vi nổ theo 4 hướng
+    std::vector<std::pair<int, int>> explosionTiles = {
+        {gridX, gridY},     // Ô đặt bom
+        {gridX - 1, gridY}, // Trái
+        {gridX + 1, gridY}, // Phải
+        {gridX, gridY - 1}, // Trên
+        {gridX, gridY + 1}  // Dưới
+    };
+
+    // Kiểm tra va chạm với Enemy
+    for (Enemy& enemy : enemies) {
+        int enemyGridX = enemy.getX() / 32;
+        int enemyGridY = enemy.getY() / 32;
+
+        for (auto& tile : explosionTiles) {
+            if (enemyGridX == tile.first && enemyGridY == tile.second) {
+                enemy.die();
+                break; // Không cần kiểm tra tiếp nếu đã chết
+            }
         }
     }
 
-    if (player->getX() / 32 == gridX && player->getY() / 32 == gridY) {
-        player->die();
+    // Kiểm tra va chạm với Player
+    int playerGridX = player->getX() / 32;
+    int playerGridY = player->getY() / 32;
+
+    for (auto& tile : explosionTiles) {
+        if (playerGridX == tile.first && playerGridY == tile.second) {
+            player->die();
+            break;
+        }
     }
 }
+
 
 // kích hoạt vụ nổ của bom
 void Bomb::explode() {
