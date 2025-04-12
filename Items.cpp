@@ -1,6 +1,5 @@
 ﻿#include "Items.h"
 #include <SDL_image.h>
-#include <SDL_log.h> // dễ đi bug hơn
 
 const int TILE_SIZE = 32; // xác định kích thước của ô lưới
 

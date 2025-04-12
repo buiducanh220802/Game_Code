@@ -14,108 +14,175 @@ Player::Player(Map* map) {
     y = startY;
     posX = x * TILE_SIZE;
     posY = y * TILE_SIZE;
-    speed = 2.0f;
+    _targetX = posX;  // Đặt mục tiêu ban đầu
+    _targetY = posY;
+    speed = 1.0f;
     moving = false;
     isDead = false;
+	dying = false;
+	deathTimer = 0;
     bombCount = 1;
     flameRange = 1;
     direction = Direction::NONE;
 }
 
 void Player::init(SDL_Renderer* renderer) {
+    deathSound = Mix_LoadWAV("D:/Project_1/x64/Debug/res/sounds/PLAYER_DIE.wav");
+    if (!deathSound) {
+        std::cerr << "❌ Failed to load player death sound: " << Mix_GetError() << std::endl;
+    }
+
     std::string spritePath = "D:/Project_1/x64/Debug/res/sprites/";
 
-    // Tạo danh sách texture cho từng hướng
-    std::vector<std::string> directions = { "down", "up", "left", "right" };
+    // Duyệt qua 4 hướng
+    std::vector<std::pair<Direction, std::string>> directions = {
+        {DOWN, "player_down"},
+        {UP, "player_up"},
+        {LEFT, "player_left"},
+        {RIGHT, "player_right"}
+    };
 
     for (const auto& dir : directions) {
-        for (int i = 0; i < 3; ++i) {
-            std::string fileName = spritePath + "player_" + dir + (i == 0 ? ".png" : "_" + std::to_string(i) + ".png");
-            SDL_Texture* texture = IMG_LoadTexture(renderer, fileName.c_str());
+        for (int i = 1; i <= 3; i++) { // Load đủ 3 frame
+            std::string filePath = spritePath + dir.second + "_" + std::to_string(i) + ".png";
+            SDL_Texture* texture = IMG_LoadTexture(renderer, filePath.c_str());
             if (!texture) {
-                std::cerr << "Failed to load " << fileName << ": " << IMG_GetError() << std::endl;
+                std::cerr << "⚠️ Failed to load texture: " << filePath << " | Error: " << IMG_GetError() << std::endl;
                 continue;
             }
-            if (dir == "down") walkAnimation.addFrame(DOWN, texture);
-            else if (dir == "up") walkAnimation.addFrame(UP, texture);
-            else if (dir == "left") walkAnimation.addFrame(LEFT, texture);
-            else if (dir == "right") walkAnimation.addFrame(RIGHT, texture);
+            walkAnimation.addFrame(dir.first, texture); // Thêm vào animation theo hướng
         }
+    }
+    // Load death animation
+    for (int i = 1; i <= 3; i++) {
+        std::string filePath = spritePath + "player_dead_" + std::to_string(i) + ".png";
+        SDL_Texture* texture = IMG_LoadTexture(renderer, filePath.c_str());
+        if (!texture) {
+			std::cerr << "Failed to load death texture: " << filePath << " | Error: " << IMG_GetError() << std::endl;
+        }
+		deathAnimation.addFrame(DOWN, texture); // Tất cả hướng đều giống nhau
+    }
+    // Kiểm tra ít nhất có một frame load thành công
+    if (walkAnimation.getFirstFrame(DOWN) == nullptr) {
+        std::cerr << "🛑 ERROR: No textures loaded for player! Check file paths." << std::endl;
+    }
+    // Kiểm tra frame animation chết
+    if (deathAnimation.getFirstFrame(DOWN) == nullptr) {
+        std::cerr << "🛑 ERROR: No death animation frames loaded!" << std::endl;
     }
 }
 
+
 void Player::update(Map& map) {
     if (isDead) return;
-    const Uint8* keys = SDL_GetKeyboardState(NULL); // nh?n tr?ng thái t? bàn phím
+    const Uint8* keys = SDL_GetKeyboardState(NULL); // nhận trạng thái từ bàn phím
     if (!keys) return; // Bảo vệ tránh lỗi
-
+    /*std::cout << "Updating player..." << std::endl;*/
     calculateMove(keys, map); // tính toán hu?ng di chuy?n
+   
+    /*std::cout << "Player position: (" << posX << ", " << posY << ")" << std::endl;*/
     if (moving) {
+        move();
+        walkAnimation.setDirection(direction); // Cập nhật hướng animation
         walkAnimation.update(); // Chỉ cập nhật animation nếu nhân vật đang di chuyển
+    }
+    if (dying) {
+        deathTimer--;
+        deathAnimation.update();
+        if (deathTimer <= 0) {
+            dying = false;
+        }
+        return;
     }
 }
 
 void Player::render(SDL_Renderer* renderer) {
-    if (isDead) return;
+    if (isDead && dying) {
+        deathAnimation.render(renderer, posX, posY);
+        return;
+    }
 
     SDL_Rect playerRect = { static_cast<int>(posX), static_cast<int>(posY), 32, 32 };
-
+    //std::cout << "Rendering player at: (" << posX << ", " << posY << ")" << std::endl;
     if (moving) {
         walkAnimation.render(renderer, static_cast<int>(posX), static_cast<int>(posY));
     }
     else {
-        SDL_Texture* currentFrame = walkAnimation.getFirstFrame(direction);
+        SDL_Texture* currentFrame = walkAnimation.getFirstFrame(DOWN);
         if (!currentFrame) {
-            std::cerr << "Error: Player texture is NULL! Using default texture." << std::endl;
-            return;
+            std::cerr << "Error: Player texture is NULL!" << std::endl;
+            return; // Không vẽ nếu không có texture
         }
-
-        // Lấy kích thước thực của frame
-        int texW, texH;
-        SDL_QueryTexture(currentFrame, nullptr, nullptr, &texW, &texH);
-        playerRect.w = texW;
-        playerRect.h = texH;
-
         SDL_RenderCopy(renderer, currentFrame, nullptr, &playerRect);
     }
+    
 }
 
+void Player::move() {
+    if (!moving) return;
 
-void Player::move(int dx, int dy, Map& map) {
-    float newX = posX + dx * TILE_SIZE;
-    float newY = posY + dy * TILE_SIZE;
+    // Tính khoảng cách di chuyển mỗi frame
+    float dx = (_targetX - posX);
+    float dy = (_targetY - posY);
 
-    if (canMove(newX, newY, map)) {
-        posX = newX;
-        posY = newY;
-        x = static_cast<int>(posX / TILE_SIZE);
-        y = static_cast<int>(posY / TILE_SIZE);
-    }
-
-    moving = false;
-}
-
-void Player::calculateMove(const Uint8* keys, Map& map) {
-    if (keys[SDL_SCANCODE_UP]) {
-        direction = Direction::UP;
-        move(0, -1, map);
-    }
-    else if (keys[SDL_SCANCODE_DOWN]) {
-        direction = Direction::DOWN;
-        move(0, 1, map);
-    }
-    else if (keys[SDL_SCANCODE_LEFT]) {
-        direction = Direction::LEFT;
-        move(-1, 0, map);
-    }
-    else if (keys[SDL_SCANCODE_RIGHT]) {
-        direction = Direction::RIGHT;
-        move(1, 0, map);
-    }
-    else {
+    // Nếu đã gần đến vị trí cần đến, đặt hẳn vào ô đúng
+    if (abs(dx) <= speed && abs(dy) <= speed) {
+        posX = _targetX;
+        posY = _targetY;
         moving = false;
     }
+    else {
+        // Di chuyển từng bước nhỏ theo speed
+        posX += (dx != 0) ? speed * (dx / abs(dx)) : 0;
+        posY += (dy != 0) ? speed * (dy / abs(dy)) : 0;
+    }
 }
+void Player::calculateMove(const Uint8* keys, Map& map) {
+    //std::cout << "Checking input..." << std::endl;
+
+    if (!moving) { // Chỉ đặt mục tiêu mới khi không di chuyển
+        if (keys[SDL_SCANCODE_UP]) {
+            direction = Direction::UP;
+            _targetX = posX;
+            _targetY = posY - TILE_SIZE;
+            //std::cout << "Input: UP -> Target: (" << _targetX << ", " << _targetY << ")" << std::endl;
+        }
+        else if (keys[SDL_SCANCODE_DOWN]) {
+            direction = Direction::DOWN;
+            _targetX = posX;
+            _targetY = posY + TILE_SIZE;
+            //std::cout << "Input: DOWN -> Target: (" << _targetX << ", " << _targetY << ")" << std::endl;
+        }
+        else if (keys[SDL_SCANCODE_LEFT]) {
+            direction = Direction::LEFT;
+            _targetX = posX - TILE_SIZE;
+            _targetY = posY;
+            //std::cout << "Input: LEFT -> Target: (" << _targetX << ", " << _targetY << ")" << std::endl;
+        }
+        else if (keys[SDL_SCANCODE_RIGHT]) {
+            direction = Direction::RIGHT;
+            _targetX = posX + TILE_SIZE;
+            _targetY = posY;
+            //std::cout << "Input: RIGHT -> Target: (" << _targetX << ", " << _targetY << ")" << std::endl;
+        }
+        else {
+            //std::cout << "No input detected!" << std::endl;
+        }
+    }
+    else {
+        //std::cout << "Player is already moving, ignoring new input!" << std::endl;
+    }
+
+    if (canMove(_targetX, _targetY, map)) {
+        moving = true;
+        //std::cout << "Move allowed -> Start moving!" << std::endl;
+    }
+    else {
+        //std::cout << "Move blocked!" << std::endl;
+    }
+}
+
+
 bool Player::canMove(float newX, float newY, Map& map) {
     // Xác định hitbox của nhân vật
     int left = static_cast<int>(newX);
@@ -148,17 +215,17 @@ bool Player::canMove(float newX, float newY, Map& map) {
 }
 
 
-// x? lý khi nhân v?t nh?t v?t ph?m
+// xử lý khi nhân vật thu thập vật phẩm
 void Player::collectItem(TileType itemType) {
     switch (itemType) {
     case BOMB_ITEM:
-        bombCount = std::min(bombCount + 1, 5); // Gi?i h?n t?i da 5 qu? bom
+		bombCount = std::min(bombCount + 1, 5); // Giới hạn số bom tối đa mà người chơi có thể mang theo
         break;
     case FLAME_ITEM:
-        flameRange = std::min(flameRange + 1, 5); // Gi?i h?n ph?m vi n? t?i da 5 ô
+		flameRange = std::min(flameRange + 1, 5); // Giới hạn phạm vi lửa tối đa
         break;
     case SPEED_ITEM:
-        speed = std::min(speed + 0.5f, 5.0f); // Gi?i h?n t?c d? t?i da 5.0
+        speed = std::min(speed + 0.5f, 5.0f); // Giới hạn tốc độ tối đa có thể đi
         break;
     default:
         break;
@@ -184,17 +251,75 @@ void Player::resetPosition() {
     posY = y * TILE_SIZE;
     isDead = false;
 }
+void Player::handleBombInput(const Uint8* keyState, std::vector<Bomb>& bombs, Map& map, SDL_Renderer* renderer, std::vector<Enemy>& enemies) {
+    if (keyState[SDL_SCANCODE_SPACE]) {
+        placeBomb(map, bombs, renderer, enemies);
+    }
+}
 
-void Player::placeBomb(Map& map) {
-    if (bombCount > 0 && map.getTile(x, y) == GRASS) {
-        map.placeBomb(x, y);
-        bombCount--;
+void Player::placeBomb(Map& map, std::vector<Bomb>& bombs, SDL_Renderer* renderer, std::vector<Enemy>& enemies) {
+
+    std::pair<int, int> playerPos = getPosition(); // lấy vị trí người chơi
+    int bombX = playerPos.first / 32;
+    int bombY = playerPos.second / 32;
+    // Kiểm tra xem đã có bom tại vị trí này chưa
+    for (const auto& bomb : bombs) {
+        if (bomb.isActive() && bomb.getGridX() == bombX && bomb.getGridY() == bombY) {
+           /* std::cout << "Bomb already exists at (" << bombX << ", " << bombY << ")\n";*/
+            return;
+        }
+    }
+
+    // Kiểm tra nếu Player có thể đặt bom tại vị trí này
+    if (bombCount > 0 && map.getTile(bombX, bombY) == GRASS) {
+        // Tạo bom mới và thêm vào danh sách
+        bombs.emplace_back(renderer, &map, this, enemies);  // Chú ý truyền đúng tham số
+        bombs.back().place(bombX, bombY); // Đặt bom vào vị trí
+
+        bombCount--; // Giảm số lượng bom của Player
+
+        std::cout << "Bomb placed at (" << bombX << ", " << bombY << ")\n";
     }
 }
 
 void Player::die() {
     isDead = true;
+    dying = true;
+    deathTimer = 60;
+    deathAnimation.reset();
+	if (deathSound) {
+		Mix_PlayChannel(-1, deathSound, 0);
+	}
+	else {
+		std::cerr << "❌ Failed to play player death sound: " << Mix_GetError() << std::endl;
+	}
 }
+void Player::increaseBombCount() {
+    bombCount++;
+}
+
 std::pair<float, float> Player::getPosition() const {
     return { posX, posY };
+}
+void Player::checkCollisionWithEnemies(const std::vector<Enemy>& enemies) {
+    if (isDead) return;
+
+    SDL_Rect playerRect = { posX, posY, 32, 32 };
+
+    for (const Enemy& enemy : enemies) {
+        if (!enemy.isAlive()) continue;
+
+        SDL_Rect enemyRect = { enemy.getX(), enemy.getY(), 32, 32 };
+
+        bool collied = !(playerRect.x + playerRect.w <= enemyRect.x ||
+            enemyRect.x + enemyRect.w <= playerRect.x ||
+            playerRect.y + playerRect.h <= enemyRect.y ||
+            enemyRect.y + enemyRect.h <= playerRect.y);
+
+        if (collied) {
+			std::cout << "Player collided with enemy at (" << enemy.getX() << ", " << enemy.getY() << ")\n";
+			die(); // Xử lý va chạm
+			break; // Không cần kiểm tra các enemy còn lại
+        }
+    }
 }

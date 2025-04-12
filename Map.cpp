@@ -10,7 +10,7 @@ Map::Map() // các constructor để khởi tạo các biến thành viên
     : grassTexture(nullptr), wallTexture(nullptr), brickTexture(nullptr),
     portalTexture(nullptr), bombItemTexture(nullptr), flameItemTexture(nullptr),
     speedItemTexture(nullptr), onealTexture(nullptr), kondoriaTexture(nullptr),
-    bomberTexture(nullptr), bombTexture(nullptr) {
+    bomberTexture(nullptr) {
 }
 Map::~Map() { // giải phóng texture
     SDL_DestroyTexture(grassTexture);
@@ -23,7 +23,7 @@ Map::~Map() { // giải phóng texture
     SDL_DestroyTexture(onealTexture);
     SDL_DestroyTexture(kondoriaTexture);
     SDL_DestroyTexture(bomberTexture);
-    SDL_DestroyTexture(bombTexture);
+    /*SDL_DestroyTexture(bombTexture);*/
 }
 // tải bản đồ từ file đã có .txt
 void Map::loadFromFile(const std::string& filename) {
@@ -71,15 +71,15 @@ void Map::loadFromFile(const std::string& filename) {
             } // trên đây là các ký hiệu được mặc định trong bản đồ
         }
     }
-    std::cout << "Loaded map:" << std::endl;
-    for (const auto& row : grid) {
-        for (TileType tile : row) {
-            std::cout << tile; // In số hoặc ký hiệu tương ứng
-        }
-        std::cout << std::endl;
-    }
+    //std::cout << "Loaded map:" << std::endl;
+    //for (const auto& row : grid) {
+    //    for (TileType tile : row) {
+    //        std::cout << tile; // In số hoặc ký hiệu tương ứng
+    //    }
+    //    std::cout << std::endl;
+    //}
 
-    std::cout << "Map loaded successfully. Checking (1,1): " << grid[1][1] << std::endl;
+ /*   std::cout << "Map loaded successfully. Checking (1,1): " << grid[1][1] << std::endl;*/
 
 }
 // hàm load ảnh cho các biến thành viên
@@ -89,7 +89,7 @@ bool Map::loadTextures(SDL_Renderer* renderer) {
         {&brickTexture, "brick.png"}, {&portalTexture, "portal.png"},
         {&bombItemTexture, "powerup_bombs.png"}, {&flameItemTexture, "powerup_flamepass.png"},
         {&speedItemTexture, "powerup_speed.png"}, {&onealTexture, "oneal_right1.png"},
-        {&kondoriaTexture, "kondoria_right1.png"}, {&bomberTexture, "player_right.png"}, {&bombTexture, "bomb.png" },
+        //{&kondoriaTexture, "kondoria_right1.png"}, {&bomberTexture, "player_right_1.png"}/*, {&bombTexture, "bomb.png"*/ },
     };
 
     for (auto& tex : textures) {
@@ -116,7 +116,7 @@ void Map::render(SDL_Renderer* renderer, int offsetX, int offsetY) {
             switch (grid[row][col]) {
             case WALL: texture = wallTexture; break;
             case BRICK: texture = brickTexture; break;
-            case BOMB: texture = bombTexture; break;
+            /*case BOMB: texture = bombTexture; break;*/
             }
 
             if (texture) {
@@ -159,28 +159,14 @@ bool Map::isWall(int x, int y) const {
     }
 
     TileType tile = grid[y][x];
-    std::cout << "Tile at (" << x << ", " << y << ") = " << tile << std::endl;
+    /*std::cout << "Tile at (" << x << ", " << y << ") = " << tile << std::endl;*/
 
     return tile == WALL;
 }
 
-
 bool Map::isBomb(int x, int y) const {
     return grid[y][x] == BOMB;
 }
-bool Map::canMove(int x, int y) const {
-    int tileX = x / TILE_SIZE;
-    int tileY = y / TILE_SIZE;
-
-    if (tileX < 0 || tileX >= getWidth() || tileY < 0 || tileY >= getHeight()) return false;
-
-    return getTile(tileX, tileY) == GRASS &&
-        getTile(tileX + 31 / TILE_SIZE, tileY) == GRASS &&
-        getTile(tileX, tileY + 31 / TILE_SIZE) == GRASS &&
-        getTile(tileX + 31 / TILE_SIZE, tileY + 31 / TILE_SIZE) == GRASS;
-}
-
-
 void Map::destroyTile(int x, int y) {
     if (getTile(x, y) == BRICK) {
         auto it = hiddenItems.find({ y, x });
@@ -194,10 +180,9 @@ void Map::destroyTile(int x, int y) {
     }
 }
 
-void Map::placeBomb(int x, int y) {
-    if (y >= 0 && y < grid.size() && x >= 0 && x < grid[0].size()) {
-        if (grid[y][x] == GRASS) {
-            grid[y][x] = BOMB;
-        }
+bool Map::isBrick(int x, int y) const {
+    if (x < 0 || x >= getWidth() || y < 0 || y >= getHeight()) {
+        return false;
     }
+    return grid[y][x] == BRICK;
 }

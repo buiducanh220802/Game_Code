@@ -22,14 +22,13 @@ public:
 
     TileType getTile(int x, int y) const;
     void destroyTile(int x, int y);
-    void removeItem(int x, int y);  // Hàm mới để xóa vật phẩm khi người chơi nhặt
     bool loadTextures(SDL_Renderer* renderer);
-    void placeBomb(int x, int y);
     size_t getWidth() const { return grid.empty() ? 0 : grid[0].size(); }
     size_t getHeight() const { return grid.size(); }
     bool isWall(int x, int y) const;
     bool isBomb(int x, int y) const;
-    bool canMove(int x, int y) const;
+    /*bool canMove(int x, int y) const;*/
+    bool isBrick(int x, int y) const;
    
 private:
     std::vector<std::vector<TileType>> grid;
@@ -45,7 +44,7 @@ private:
     SDL_Texture* onealTexture;
     SDL_Texture* kondoriaTexture;
     SDL_Texture* bomberTexture;
-	SDL_Texture* bombTexture; // Texture cho bom    
+	//SDL_Texture* bombTexture; // Texture cho bom    
 };
 
 #endif
