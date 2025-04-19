@@ -1,6 +1,7 @@
 # Bomberman Game
 
-<img src="res/demo.png" alt="drawing" width="400"/>
+<img src="res/demo_1.png" alt="drawing" width="400"/>
+<img src="res/demo_2.png" alt="drawing" width="400"/>
 
 Bomberman là một loạt trò chơi điện tử cổ điển kết hợp các yếu tố giải đố, mê cung và chiến lược. Ban đầu được phát triển bởi Hudson Soft và hiện thuộc sở hữu của Konami, loạt trò chơi này đã giải trí cho người chơi từ khi ra mắt vào năm 1983.
 
