@@ -1,0 +1,18 @@
+
+#ifndef TILETYPE_H
+#define TILETYPE_H
+
+enum TileType {
+	GRASS,
+	WALL,
+	BRICK,
+	BOMB,
+	BOMBER,
+	ONEAL,
+	KONDORIA,
+	BOMB_ITEM,
+	FLAME_ITEM,
+	SPEED_ITEM,
+	PORTAL
+};
+#endif

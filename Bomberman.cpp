@@ -8,11 +8,14 @@
 #include <fstream>
 #include <cstdlib>
 #include <ctime>
+#include <memory>
 #include "Map.h"
 #include "Player.h"
 #include "Enemy.h"
 #include "Bomb.h"
 #include "Items.h"
+#include "EnemyTextureManager.h"
+#include "Menu.h"
 
 const int TILE_SIZE = 32;
 const int MAP_SIZE = 17;
@@ -25,6 +28,8 @@ const std::string RES_PATH = "D:/Project_1/x64/Debug/res/";
 Mix_Music* backgroundMusic = nullptr;
 Mix_Chunk* explosionSound = nullptr;
 TTF_Font* font = nullptr;
+SDL_Texture* gameOverBackground = nullptr;
+
 // tải hình ảnh từ file vào texture
 SDL_Texture* loadTexture(SDL_Renderer* renderer, const std::string& path) {
     SDL_Texture* newTexture = IMG_LoadTexture(renderer, path.c_str());
@@ -64,14 +69,22 @@ bool initSDL(SDL_Window*& window, SDL_Renderer*& renderer) {
     } 
     // load các thành phần liên quan
     backgroundMusic = Mix_LoadMUS((RES_PATH + "sounds/soundtrack.wav").c_str());
+
     explosionSound = Mix_LoadWAV((RES_PATH + "sounds/BOM_11_M.wav").c_str());
+
     font = TTF_OpenFont((RES_PATH + "fonts/Arial.ttf").c_str(), 20);
+
+	gameOverBackground = loadTexture(renderer, RES_PATH + "sprites/gameover.png");
 
     if (!font) {
         std::cerr << "Failed to load font! TTF_Error: " << TTF_GetError() << std::endl;
         return false;
     }
-    if (backgroundMusic) Mix_PlayMusic(backgroundMusic, -1);
+    /*if (backgroundMusic) Mix_PlayMusic(backgroundMusic, -1);*/
+    if (!gameOverBackground) {
+		std::cerr << "Failed to load game over background! SDL_Error: " << IMG_GetError() << std::endl;
+    }
+
     return true;
 }
 void cleanup(SDL_Window* window, SDL_Renderer* renderer) {
@@ -81,22 +94,29 @@ void cleanup(SDL_Window* window, SDL_Renderer* renderer) {
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
-
+	SDL_DestroyTexture(gameOverBackground);
+	EnemyTextureManager::cleanUp(); // Giải phóng tất cả các texture của enemy
     Mix_CloseAudio();
     IMG_Quit();
     TTF_Quit();
     SDL_Quit();
+
 }
 const int FRAME_DELAY = 1000 / 60; // Giới hạn 60 FPS
 
 // Biến toàn cục
-std::vector<Enemy> enemies;
+std::vector<std::unique_ptr<Enemy>> enemies;
 std::vector<Bomb> bombs;
 bool running = true;
+bool startGame = false;
+bool isGameOver = false;
+bool showGameOverScreen = false;
+Menu* menu = nullptr;
 SDL_Window* window = nullptr;
 SDL_Renderer* renderer = nullptr;
 int level = 1, timeLeft = 150;
 Uint32 lastTime = SDL_GetTicks();
+Uint32 gameOverStartTime = 0;
 Map map;
 Player player(&map);
 
@@ -104,8 +124,17 @@ Player player(&map);
 bool initGame() {
     if (!initSDL(window, renderer)) return false;
 
-    srand(static_cast<unsigned int>(time(0)));
+    menu = new Menu(renderer, RES_PATH);
+    // vòng lặp xử lý menu
+    if (!menu->show()) {
+        running = false;
+        return false;
+    }
+    else {
+        startGame = true;
+    }
 
+    srand(static_cast<unsigned int>(time(0)));
     map.loadFromFile(RES_PATH + "levels/Level" + std::to_string(level) + ".txt");
     map.loadTextures(renderer);
 
@@ -114,13 +143,13 @@ bool initGame() {
     for (int row = 0; row < map.getHeight(); ++row) {
         for (int col = 0; col < map.getWidth(); ++col) {
             if (map.getTile(col, row) == ONEAL) {
-                enemies.push_back(Enemy(col,row));  
-                enemies.back().init(renderer, "oneal");
+                enemies.emplace_back(std::make_unique<Enemy>(col,row));  
+				enemies.back()->init(renderer,"oneal");
                 //std::cout << "Spawned ONEAL at (" << col << ", " << row << ")" << std::endl;
             }
             else if (map.getTile(col, row) == KONDORIA) {
-                enemies.push_back(Enemy(col, row)); 
-                enemies.back().init(renderer,"kondoria");
+                enemies.emplace_back(std::make_unique<Enemy>(col, row)); 
+                enemies.back()->init(renderer,"kondoria");
                 //std::cout << "Spawned KONDORIA at (" << col << ", " << row << ")" << std::endl;
             }
         }
@@ -156,13 +185,13 @@ void checkPortal() {
         for (int row = 0; row < map.getHeight(); ++row) {
             for (int col = 0; col < map.getWidth(); ++col) {
                 if (map.getTile(col, row) == ONEAL) {
-                    enemies.push_back(Enemy(col, row));
-                    enemies.back().init(renderer,"oneal");
+                    enemies.emplace_back(std::make_unique<Enemy>(col, row));
+                    enemies.back()->init(renderer,"oneal");
                     //std::cout << "Spawned ONEAL at (" << col << ", " << row << ")" << std::endl;
                 }
                 else if (map.getTile(col, row) == KONDORIA) {
-                    enemies.push_back(Enemy(col, row));
-                    enemies.back().init(renderer,"kondoria");
+                    enemies.emplace_back(std::make_unique<Enemy>(col, row));
+                    enemies.back()->init(renderer,"kondoria");                   
                     //std::cout << "Spawned KONDORIA at (" << col << ", " << row << ")" << std::endl;
                 }
             }
@@ -174,60 +203,85 @@ void checkPortal() {
 
 // Hàm chạy game loop
 void gameLoop() {
-    Uint32 frameStart, frameTime;
-
+    
     while (running) {
-        frameStart = SDL_GetTicks();
 
-        // Cập nhật thời gian đếm ngược
-        Uint32 currentTime = SDL_GetTicks();
-        if (currentTime - lastTime >= 1000) {
-            timeLeft = std::max(0, timeLeft - 1);
-            lastTime = currentTime;
-        }
+        if (startGame) {
+            if (backgroundMusic) Mix_PlayMusic(backgroundMusic, -1);
 
-        handleEvents();  // Xử lý sự kiện
+            Uint32 frameStart, frameTime;
+            while (running && startGame) {
+                frameStart = SDL_GetTicks();
+                // Cập nhật thời gian đếm ngược
+                Uint32 currentTime = SDL_GetTicks();
+                if (currentTime - lastTime >= 1000) {
+                    timeLeft = std::max(0, timeLeft - 1);
+                    lastTime = currentTime;
+                }
 
-        // Xử lý input trước khi update
-        const Uint8* keys = SDL_GetKeyboardState(NULL);
-        player.calculateMove(keys, map);
-        player.handleBombInput(keys, bombs, map, renderer, enemies);
-        checkPortal();   // Kiểm tra portal
+                handleEvents();  // Xử lý sự kiện
 
-        // Cập nhật logic game
-        player.update(map);
-        player.checkCollisionWithEnemies(enemies);
-        for (auto& bomb : bombs) {
-            if (bomb.isActive()) {
-                bomb.update();
-            }   
-        }
-        for (Enemy& enemy : enemies) {
-            enemy.update(map);
-        }
-        enemies.erase(std::remove_if(enemies.begin(), enemies.end(),
-            [](const Enemy& e) { return !e.isAlive(); }),
-            enemies.end());
+                // Xử lý input trước khi update
+                const Uint8* keys = SDL_GetKeyboardState(NULL);
+                player.calculateMove(keys, map);
+                player.handleBombInput(keys, bombs, map, renderer, enemies);
+                checkPortal();   // Kiểm tra portal
 
-        // Render game
-        SDL_RenderClear(renderer);
-        map.render(renderer, 0, 0);
-        player.render(renderer);
-        for (auto& bomb : bombs) {
-            if (bomb.isActive()) {
-                bomb.render(renderer);
+                // Cập nhật logic game
+                player.update(map);
+                if (!isGameOver) {
+                    player.checkCollisionWithEnemies(enemies);
+                    if (!player.isAlive()) {
+                        isGameOver = true;
+                        gameOverStartTime = SDL_GetTicks(); // ghi lại thời điểm chết của player
+                    }
+                }
+                else {
+                    // sau khi animation chết xong ( khoảng tầm 2 giây )
+                    if (SDL_GetTicks() - gameOverStartTime >= 2000 && !showGameOverScreen) {
+                        showGameOverScreen = true;
+                    }
+                }
+                for (auto& bomb : bombs) {
+                    if (bomb.isActive()) {
+                        bomb.update();
+                    }
+                }
+                for (auto& enemy : enemies) {
+                    enemy->update(map);
+                }
+                enemies.erase(std::remove_if(enemies.begin(), enemies.end(),
+                    [](const std::unique_ptr<Enemy>& e) { return !e->isAlive(); }),
+                    enemies.end());
+
+                // Render game
+                SDL_RenderClear(renderer);
+
+                if (showGameOverScreen && gameOverBackground) {
+                    SDL_RenderCopy(renderer, gameOverBackground, NULL, NULL);
+                }
+                else {
+                    map.render(renderer, 0, 0);
+                    player.render(renderer);
+                    for (auto& bomb : bombs) {
+                        if (bomb.isActive()) {
+                            bomb.render(renderer);
+                        }
+                    }
+                    for (auto& enemy : enemies) {
+                        enemy->render(renderer);
+                    }
+                }
+
+                SDL_RenderPresent(renderer);
+
+                // Giới hạn FPS
+                frameTime = SDL_GetTicks() - frameStart;
+                if (frameTime < FRAME_DELAY) {
+                    SDL_Delay(FRAME_DELAY - frameTime);
+                }
             }
-        }
-        for (Enemy& enemy : enemies) {
-            enemy.render(renderer);
-        }
-
-        SDL_RenderPresent(renderer);
-
-        // Giới hạn FPS
-        frameTime = SDL_GetTicks() - frameStart;
-        if (frameTime < FRAME_DELAY) {
-            SDL_Delay(FRAME_DELAY - frameTime);
+            
         }
     }
 }

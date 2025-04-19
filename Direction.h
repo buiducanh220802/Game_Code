@@ -10,5 +10,13 @@ enum Direction {
     CENTER,
     NONE
 };
+namespace std {
+	template<>
+	struct hash<Direction> {
+		std::size_t operator()(const Direction& d) const noexcept {
+			return std::hash<int>()(static_cast<int>(d));
+		}
+	};
+}
 
 #endif // DIRECTION_H

@@ -5,7 +5,7 @@
 
 const int TILE_SIZE = 32;
 // constructor demo
-Bomb::Bomb(SDL_Renderer* renderer, Map* map, Player* player, std::vector<Enemy>& enemies)
+Bomb::Bomb(SDL_Renderer* renderer, Map* map, Player* player, std::vector<std::unique_ptr<Enemy>>& enemies)
     : map(map), player(player), enemies(enemies), exploded(false), active(false), timer(0) {
 
     if (!renderer) {
@@ -77,12 +77,6 @@ void Bomb::cleanUp() {
         bombTexture = nullptr;
     }
 
-    // Dọn dẹp các đối tượng Animation
-    explosionCenter.cleanUp();
-    explosionUp.cleanUp();
-    explosionDown.cleanUp();
-    explosionLeft.cleanUp();
-    explosionRight.cleanUp();
 	if (placeBombSound) {
 		placeBombSound = nullptr;
 	}
@@ -127,22 +121,22 @@ void Bomb::renderExplosion(SDL_Renderer* renderer) {
 		return;
 	}
     if (!map->isWall(gridX, gridY - 1)) {
-        std::cout << "Render UP\n";
+        //std::cout << "Render UP\n";
 		explosionUp.setDirection(UP);
         explosionUp.render(renderer, x, y - TILE_SIZE);
     }
     if (!map->isWall(gridX, gridY + 1)) {
-		std::cout << "Render DOWN\n";
+		//std::cout << "Render DOWN\n";
 		explosionDown.setDirection(DOWN);
         explosionDown.render(renderer, x, y + TILE_SIZE);
     }
     if (!map->isWall(gridX - 1, gridY)) {
-		std::cout << "Render LEFT\n";
+		//std::cout << "Render LEFT\n";
 		explosionLeft.setDirection(LEFT);
         explosionLeft.render(renderer, x - TILE_SIZE, y);
     }
     if (!map->isWall(gridX + 1, gridY)) {
-		std::cout << "Render RIGHT\n";
+		//std::cout << "Render RIGHT\n";
 		explosionRight.setDirection(RIGHT);
         explosionRight.render(renderer, x + TILE_SIZE, y);
     }
@@ -185,7 +179,7 @@ void Bomb::update() {
         explosionRight.update();
 
         if (timer <= -60) {  // Xóa hiệu ứng sau 60 frame (khoảng 1 giây)
-            std::cout << "Resetting bomb explosion state..." << std::endl;
+            //std::cout << "Resetting bomb explosion state..." << std::endl;
             if (player) {
                 player->increaseBombCount();
             }
@@ -201,20 +195,20 @@ void Bomb::checkExplosionHit() {
         {gridX, gridY - 1}, {gridX, gridY + 1}
     };
 
-    for (Enemy& enemy : enemies) {
-        int enemyGridX = enemy.getX() / 32;
-        int enemyGridY = enemy.getY() / 32;
+    for (auto& enemy : enemies) {
+        int enemyGridX = enemy->getX() / 32;
+        int enemyGridY = enemy->getY() / 32;
 
         for (auto& tile : explosionTiles) {
             if (enemyGridX == tile.first && enemyGridY == tile.second) {
-                enemy.die();
+                enemy->die();
                 break;
             }
         }
     }
     enemies.erase(
-        std::remove_if(enemies.begin(), enemies.end(), [](Enemy& e) {
-            return !e.isAlive(); // hoặc e.dead == true nếu bạn có biến trạng thái
+        std::remove_if(enemies.begin(), enemies.end(), [](const std::unique_ptr<Enemy>& e) {
+            return !e->isAlive(); // hoặc e.dead == true nếu bạn có biến trạng thái
             }),
         enemies.end()
     );

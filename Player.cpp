@@ -31,7 +31,10 @@ void Player::init(SDL_Renderer* renderer) {
     if (!deathSound) {
         std::cerr << "❌ Failed to load player death sound: " << Mix_GetError() << std::endl;
     }
-
+	pickupSound = Mix_LoadWAV("D:/Project_1/x64/Debug/res/sounds/Item.wav");
+    if (!pickupSound) {
+        std::cerr << "❌ Failed to load pickup sound: " << Mix_GetError() << std::endl;
+    }
     std::string spritePath = "D:/Project_1/x64/Debug/res/sprites/";
 
     // Duyệt qua 4 hướng
@@ -86,6 +89,10 @@ void Player::update(Map& map) {
         walkAnimation.setDirection(direction); // Cập nhật hướng animation
         walkAnimation.update(); // Chỉ cập nhật animation nếu nhân vật đang di chuyển
     }
+
+    if (!moving) {
+		checkItemCollision(map); // Kiểm tra va chạm với item
+    }
     if (dying) {
         deathTimer--;
         deathAnimation.update();
@@ -130,6 +137,7 @@ void Player::move() {
         posX = _targetX;
         posY = _targetY;
         moving = false;
+		
     }
     else {
         // Di chuyển từng bước nhỏ theo speed
@@ -232,10 +240,10 @@ void Player::collectItem(TileType itemType) {
     }
 }
 
-bool Player::reachedPortal(const Map& map, const std::vector<Enemy>& enemies) {
+bool Player::reachedPortal(const Map& map, const std::vector<std::unique_ptr<Enemy>>& enemies) {
     if (map.getTile(x, y) == TileType::PORTAL) {
         for (const auto& enemy : enemies) {
-            if (enemy.getX() == x && enemy.getY() == y) {
+            if (enemy->getX() == x && enemy->getY() == y) {
                 return false;
             }
         }
@@ -251,13 +259,14 @@ void Player::resetPosition() {
     posY = y * TILE_SIZE;
     isDead = false;
 }
-void Player::handleBombInput(const Uint8* keyState, std::vector<Bomb>& bombs, Map& map, SDL_Renderer* renderer, std::vector<Enemy>& enemies) {
+
+void Player::handleBombInput(const Uint8* keyState, std::vector<Bomb>& bombs, Map& map, SDL_Renderer* renderer, std::vector<std::unique_ptr<Enemy>>& enemies) {
     if (keyState[SDL_SCANCODE_SPACE]) {
         placeBomb(map, bombs, renderer, enemies);
     }
 }
 
-void Player::placeBomb(Map& map, std::vector<Bomb>& bombs, SDL_Renderer* renderer, std::vector<Enemy>& enemies) {
+void Player::placeBomb(Map& map, std::vector<Bomb>& bombs, SDL_Renderer* renderer, std::vector<std::unique_ptr<Enemy>>& enemies) {
 
     std::pair<int, int> playerPos = getPosition(); // lấy vị trí người chơi
     int bombX = playerPos.first / 32;
@@ -278,7 +287,7 @@ void Player::placeBomb(Map& map, std::vector<Bomb>& bombs, SDL_Renderer* rendere
 
         bombCount--; // Giảm số lượng bom của Player
 
-        std::cout << "Bomb placed at (" << bombX << ", " << bombY << ")\n";
+        //std::cout << "Bomb placed at (" << bombX << ", " << bombY << ")\n";
     }
 }
 
@@ -291,7 +300,7 @@ void Player::die() {
 		Mix_PlayChannel(-1, deathSound, 0);
 	}
 	else {
-		std::cerr << "❌ Failed to play player death sound: " << Mix_GetError() << std::endl;
+		//std::cerr << "❌ Failed to play player death sound: " << Mix_GetError() << std::endl;
 	}
 }
 void Player::increaseBombCount() {
@@ -301,15 +310,15 @@ void Player::increaseBombCount() {
 std::pair<float, float> Player::getPosition() const {
     return { posX, posY };
 }
-void Player::checkCollisionWithEnemies(const std::vector<Enemy>& enemies) {
+void Player::checkCollisionWithEnemies(const std::vector<std::unique_ptr<Enemy>>& enemies) {
     if (isDead) return;
 
     SDL_Rect playerRect = { posX, posY, 32, 32 };
 
-    for (const Enemy& enemy : enemies) {
-        if (!enemy.isAlive()) continue;
+    for (const auto& enemy : enemies) {
+        if (!enemy->isAlive()) continue;
 
-        SDL_Rect enemyRect = { enemy.getX(), enemy.getY(), 32, 32 };
+        SDL_Rect enemyRect = { enemy->getX(), enemy->getY(), 32, 32 };
 
         bool collied = !(playerRect.x + playerRect.w <= enemyRect.x ||
             enemyRect.x + enemyRect.w <= playerRect.x ||
@@ -317,9 +326,26 @@ void Player::checkCollisionWithEnemies(const std::vector<Enemy>& enemies) {
             enemyRect.y + enemyRect.h <= playerRect.y);
 
         if (collied) {
-			std::cout << "Player collided with enemy at (" << enemy.getX() << ", " << enemy.getY() << ")\n";
+			//std::cout << "Player collided with enemy at (" << enemy->getX() << ", " << enemy->getY() << ")\n";
 			die(); // Xử lý va chạm
 			break; // Không cần kiểm tra các enemy còn lại
         }
     }
+}
+
+void Player::checkItemCollision(Map& map) {
+    int tileX = static_cast<int>(posX) / TILE_SIZE;
+    int tileY = static_cast<int>(posY) / TILE_SIZE;
+    TileType tile = map.getTile(tileX, tileY);
+	if (tile == BOMB_ITEM || tile == FLAME_ITEM || tile == SPEED_ITEM || tile == PORTAL) {
+		collectItem(tile);
+		map.removeItemAt(tileX, tileY); // Xóa item sau khi thu thập
+		if (pickupSound) {
+			Mix_PlayChannel(-1, pickupSound, 0);
+		}
+		else {
+			//std::cerr << "❌ Failed to play pickup sound: " << Mix_GetError() << std::endl;
+		}
+		//std::cout << "Collected item at (" << tileX << ", " << tileY << ")\n";
+	}
 }

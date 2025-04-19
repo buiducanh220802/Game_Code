@@ -26,7 +26,7 @@ public:
     void render(SDL_Renderer* renderer, int x, int y);
     void setDirection(Direction dir);
     void reset();
-    void cleanUp(); // Thêm phương thức cleanUp để dọn dẹp tài nguyên
+    //void cleanUp(); // Thêm phương thức cleanUp để dọn dẹp tài nguyên
     int getFrameCount(Direction dir) const;
 
 };

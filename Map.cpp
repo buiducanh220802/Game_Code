@@ -71,15 +71,6 @@ void Map::loadFromFile(const std::string& filename) {
             } // trên đây là các ký hiệu được mặc định trong bản đồ
         }
     }
-    //std::cout << "Loaded map:" << std::endl;
-    //for (const auto& row : grid) {
-    //    for (TileType tile : row) {
-    //        std::cout << tile; // In số hoặc ký hiệu tương ứng
-    //    }
-    //    std::cout << std::endl;
-    //}
-
- /*   std::cout << "Map loaded successfully. Checking (1,1): " << grid[1][1] << std::endl;*/
 
 }
 // hàm load ảnh cho các biến thành viên
@@ -88,8 +79,7 @@ bool Map::loadTextures(SDL_Renderer* renderer) {
         {&grassTexture, "grass.png"}, {&wallTexture, "wall.png"},
         {&brickTexture, "brick.png"}, {&portalTexture, "portal.png"},
         {&bombItemTexture, "powerup_bombs.png"}, {&flameItemTexture, "powerup_flamepass.png"},
-        {&speedItemTexture, "powerup_speed.png"}, {&onealTexture, "oneal_right1.png"},
-        //{&kondoriaTexture, "kondoria_right1.png"}, {&bomberTexture, "player_right_1.png"}/*, {&bombTexture, "bomb.png"*/ },
+        {&speedItemTexture, "powerup_speed.png"}, {&onealTexture, "oneal_right1.png"}
     };
 
     for (auto& tex : textures) {
@@ -116,7 +106,6 @@ void Map::render(SDL_Renderer* renderer, int offsetX, int offsetY) {
             switch (grid[row][col]) {
             case WALL: texture = wallTexture; break;
             case BRICK: texture = brickTexture; break;
-            /*case BOMB: texture = bombTexture; break;*/
             }
 
             if (texture) {
@@ -129,12 +118,12 @@ void Map::render(SDL_Renderer* renderer, int offsetX, int offsetY) {
             }
 
             // Vẽ vật phẩm nếu không còn gạch
-            texture = nullptr;
             switch (hiddenItems[{row, col}]) {
             case BOMB_ITEM: texture = bombItemTexture; break;
             case FLAME_ITEM: texture = flameItemTexture; break;
             case SPEED_ITEM: texture = speedItemTexture; break;
             case PORTAL: texture = portalTexture; break;
+            default: texture = nullptr; break;
             }
 
             if (texture) {
@@ -157,10 +146,7 @@ bool Map::isWall(int x, int y) const {
     if (x < 0 || x >= getWidth() || y < 0 || y >= getHeight()) {
         return true;
     }
-
     TileType tile = grid[y][x];
-    /*std::cout << "Tile at (" << x << ", " << y << ") = " << tile << std::endl;*/
-
     return tile == WALL;
 }
 
@@ -170,11 +156,15 @@ bool Map::isBomb(int x, int y) const {
 void Map::destroyTile(int x, int y) {
     if (getTile(x, y) == BRICK) {
         auto it = hiddenItems.find({ y, x });
+
+        // nếu có vật phẩm tại vị trí này
         if (it != hiddenItems.end()) {
+            // gán loại tile là item tương ứng
             grid[y][x] = it->second; // Gán vật phẩm vào bản đồ
-            hiddenItems.erase(it);   // Xóa khỏi danh sách vật phẩm ẩn
+
         }
         else {
+            // không có item gán thành grass đi
             grid[y][x] = GRASS;
         }
     }
@@ -185,4 +175,13 @@ bool Map::isBrick(int x, int y) const {
         return false;
     }
     return grid[y][x] == BRICK;
+}
+
+void Map::removeItemAt(int x, int y) {
+    if (grid[y][x] == BOMB_ITEM || grid[y][x] == FLAME_ITEM ||
+        grid[y][x] == SPEED_ITEM ) {
+            grid[y][x] = GRASS;
+            hiddenItems.erase({ y,x });
+            std::cout << "Items reomved" << std::endl;
+        }
 }

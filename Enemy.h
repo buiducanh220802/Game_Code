@@ -14,6 +14,7 @@ private:
     float posX, posY; // vị trí thực tế
     float speed; // tốc độ di chuyển
     float _targetX, _targetY; // đích đến tiếp theo
+    std::string enemyType;
     Direction direction;
     SDL_Texture* enemyTexture;
     Animation walkAnimation;
@@ -29,6 +30,8 @@ public:
     Enemy() = default;
     Enemy(int x, int y);
     ~Enemy();
+    Enemy(const Enemy&) = delete;
+    Enemy& operator=(const Enemy&) = delete;
 
     void init(SDL_Renderer* renderer,const std::string& enemyType);
     void update(Map& map);

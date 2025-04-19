@@ -4,6 +4,7 @@
 #include <SDL.h>
 #include<SDL_mixer.h>
 #include <vector> // Include vector header
+#include <memory>
 #include "Map.h"
 #include "Animation.h"
 #include "Direction.h"
@@ -24,12 +25,14 @@ private:
     int bombCount;
     int flameRange;
     float _targetX, _targetY; // Tọa độ mục tiêu di chuyển
+    //const std::vector<std::unique_ptr<Enemy>>& enemies;
 
     SDL_Texture* playerTexture;
     Direction direction;
     Animation walkAnimation;
     Animation deathAnimation; 
 	Mix_Chunk* deathSound; // Âm thanh khi player chết
+	Mix_Chunk* pickupSound; // Âm thanh khi thu thập vật phẩm
 
 public:
     Player(Map* map);
@@ -41,17 +44,17 @@ public:
     void calculateMove(const Uint8* keys, Map& map);
     bool canMove(float newX, float newY, Map& map);
     void collectItem(TileType itemType);
-    bool reachedPortal(const Map& map, const std::vector<Enemy>& enemies);
+    bool reachedPortal(const Map& map, const std::vector<std::unique_ptr<Enemy>>& enemies);
     void resetPosition();
-    void placeBomb(Map& map, std::vector<Bomb>& bombs, SDL_Renderer* renderer, std::vector<Enemy>& enemies);
-    void handleBombInput(const Uint8* keyState, std::vector<Bomb>& bombs, Map& map, SDL_Renderer* renderer, std::vector<Enemy>& enemies);
+    void placeBomb(Map& map, std::vector<Bomb>& bombs, SDL_Renderer* renderer, std::vector<std::unique_ptr<Enemy>>& enemies);
+    void handleBombInput(const Uint8* keyState, std::vector<Bomb>& bombs, Map& map, SDL_Renderer* renderer, std::vector<std::unique_ptr<Enemy>>& enemies);
     void die(); // thêm hàm để xử lý khi bị tiêu diệt
     int getX() const { return posX; } // lấy tọa độ lưới ô vuông của người chơi
     int getY() const { return posY; }
     bool isAlive() const { return !isDead; }
     void increaseBombCount();
-    void checkCollisionWithEnemies(const std::vector<Enemy>& enemies);
-
+    void checkCollisionWithEnemies(const std::vector<std::unique_ptr<Enemy>>& enemies);
+    void checkItemCollision(Map& map);
 
 };
 

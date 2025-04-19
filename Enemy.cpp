@@ -1,4 +1,5 @@
 ﻿#include "Enemy.h"
+#include "EnemyTextureManager.h"
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
@@ -17,41 +18,59 @@ Enemy::Enemy(int startX, int startY) {
 }
 
 Enemy::~Enemy() {
-    walkAnimation.cleanUp();
+    //walkAnimation.cleanUp();
+    std::cout << "Enemy destroyed and resources cleaned up.\n";
 }
-
 void Enemy::init(SDL_Renderer* renderer,const std::string& enemyType) {
+	this->enemyType = enemyType;
 
     deathSound = Mix_LoadWAV("D:/Project_1/x64/Debug/res/sounds/ENEMY_DIE.wav");
     if (!deathSound) {
         std::cerr << "❌ Failed to load enemy death sound: " << Mix_GetError() << std::endl;
     }
 
-    const std::string directions[] = { "right", "left", "up", "down" };
-    const Direction dirEnum[] = { RIGHT, LEFT, UP, DOWN };
+	EnemyTextureManager::loadEnemyTextures(renderer, enemyType);
 
-    for (int i = 0; i < 4; i++) {
-        for (int frame = 1; frame <= 3; frame++) {
-            std::string path = "D:/Project_1/x64/Debug/res/sprites/" + enemyType + "_" + directions[i] + std::to_string(frame) + ".png";
-            SDL_Texture* texture = IMG_LoadTexture(renderer, path.c_str());
-            if (!texture) {
-                std::cout << "❌ Failed to load texture: " << IMG_GetError() << std::endl;
-            }
-            if (texture) {
-                walkAnimation.addFrame(dirEnum[i], texture);
-                //std::cout << " Loaded: " << path << "\n";
+    for (Direction dir : {RIGHT, LEFT, UP, DOWN}) {
+        for (int frame = 0; frame < 3; frame++) {
+            SDL_Texture* tex = EnemyTextureManager::getTexture(enemyType, dir, frame);
+            if (tex) {
+                walkAnimation.addFrame(dir, tex);
             }
             else {
-                SDL_Log("Failed to load texture: %s, Error: %s", path.c_str(), SDL_GetError());
+				std::cerr << "❌ Failed to load texture for enemy type: " << enemyType << ", direction: " << dir << ", frame: " << frame << std::endl;
             }
         }
     }
+
+    //const std::string directions[] = { "right", "left", "up", "down" };
+    //const Direction dirEnum[] = { RIGHT, LEFT, UP, DOWN };
+    //for (int i = 0; i < 4; i++) {
+    //    for (int frame = 1; frame <= 3; frame++) {
+    //        std::string path = "D:/Project_1/x64/Debug/res/sprites/" + enemyType + "_" + directions[i] + std::to_string(frame) + ".png";
+    //        SDL_Texture* texture = IMG_LoadTexture(renderer, path.c_str());
+    //        if (!texture) {
+    //            std::cout << "❌ Failed to load texture: " << IMG_GetError() << std::endl;
+    //        }
+    //        if (texture) {
+    //            walkAnimation.addFrame(dirEnum[i], texture);
+    //            //std::cout << "Added frame for dir " << directions[i] << ": " << path << "\n";
+    //        }
+    //        else {
+    //            SDL_Log("Failed to load texture: %s, Error: %s", path.c_str(), SDL_GetError());
+    //        }
+    //    }
+    //}
+    //
     walkAnimation.setDirection(direction);
     if (!walkAnimation.getFirstFrame(RIGHT)) {
         std::cout << "Error: Missing texture for RIGHT direction!" << std::endl;
     }
-
+    if (!walkAnimation.getFirstFrame(direction)) {
+        std::cout << "❌ No default frame loaded for direction: " << direction << std::endl;
+    }
 }
+
 
 void Enemy::update(Map& map) {
     if (!alive) return;
@@ -136,9 +155,6 @@ bool Enemy::canMove(float newX, float newY, Map& map) {
         topLeft == BRICK || topRight == BRICK || bottomLeft == BRICK || bottomRight == BRICK) {
         return false;
     }
-    /*std::cout << "canMove to (" << newX << ", " << newY << ") => Tiles: "
-        << topLeft << ", " << topRight << ", "
-        << bottomLeft << ", " << bottomRight << std::endl;*/
 
     // Cho phép Enemy đi qua GRASS, PORTAL, hoặc ITEMs
     return true;
@@ -156,7 +172,7 @@ void Enemy::render(SDL_Renderer* renderer) {
     }
 
     //std::cout << "Rendering enemy at (" << posX << ", " << posY << ")" << std::endl;
-   
+    
    
     SDL_Rect enemyRect = { static_cast<int>(posX), static_cast<int>(posY), 32, 32 };
     if (moving) {
@@ -176,7 +192,6 @@ void Enemy::render(SDL_Renderer* renderer) {
             //std::cout << "Rendering enemy at (" << posX << ", " << posY << ")\n";
         }
     }
-    
 }
 bool Enemy::die() {
     if (alive) {

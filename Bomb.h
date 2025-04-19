@@ -5,6 +5,7 @@
 #include <SDL_image.h>
 #include <SDL_mixer.h>
 #include <vector>
+#include <memory>
 #include "Animation.h"
 #include "Map.h"
 #include "Enemy.h"
@@ -14,7 +15,7 @@ class Bomb {
 public:
     // Constructors and Destructor
     Bomb();  // Default constructor
-    Bomb(SDL_Renderer* renderer, Map* map, Player* player, std::vector<Enemy>& enemies);
+    Bomb(SDL_Renderer* renderer, Map* map, Player* player, std::vector<std::unique_ptr<Enemy>>& enemies);
     ~Bomb();
 
     // Public Methods
@@ -40,7 +41,7 @@ private:
     bool active;        // Trạng thái bom (hoạt động hay không)
     bool exploded;      // Kiểm tra bom đã nổ hay chưa
     Player* player;     // Con trỏ đến đối tượng Player
-    std::vector<Enemy>& enemies;  // Danh sách đối tượng Enemy
+    std::vector<std::unique_ptr<Enemy>>& enemies;  // Danh sách đối tượng Enemy
     Map* map;
 
     // SDL Resources

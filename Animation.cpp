@@ -14,7 +14,7 @@ Animation::~Animation() {
 }
 
 void Animation::addFrame(Direction dir, SDL_Texture* texture) {
-	frames[dir].push_back(texture); // thêm texture vào vector frames theo hướng dir
+    frames[dir].push_back(texture); // thêm texture vào vector frames theo hướng dir
 }
 // cập nhật animation thay đổi frame hiện tại
 void Animation::update() {
@@ -30,6 +30,10 @@ void Animation::update() {
 void Animation::render(SDL_Renderer* renderer, int x, int y) {
     if (currentFrame >= frames[currentDirection].size()) {
         std::cerr << "❌ Invalid currentFrame: " << currentFrame << " for direction: " << currentDirection << "\n";
+        return;
+    }
+    if (frames[currentDirection].empty()) {
+        std::cerr << "❌ No frames for direction " << currentDirection << "\n";
         return;
     }
     if (!frames[currentDirection].empty()) { // kiểm tra hợp lệ mới render
@@ -73,18 +77,18 @@ void Animation::reset() {
     currentFrame = 0;
     frameTimer = 0;
 }
-void Animation::cleanUp() {
-    // Duyệt qua tất cả các hướng và giải phóng các texture
-    for (auto& pair : frames) {
-        for (SDL_Texture* texture : pair.second) {
-            if (texture) {
-                SDL_DestroyTexture(texture); // Giải phóng từng texture
-            }
-        }
-        pair.second.clear(); // Xóa tất cả các frame trong vector
-    }
-    frames.clear(); // Xóa sạch map
-}
+//void Animation::cleanUp() {
+//    // Duyệt qua tất cả các hướng và giải phóng các texture
+//    for (auto& pair : frames) {
+//        for (SDL_Texture* texture : pair.second) {
+//            if (texture) {
+//                SDL_DestroyTexture(texture); // Giải phóng từng texture
+//            }
+//        }
+//        pair.second.clear(); // Xóa tất cả các frame trong vector
+//    }
+//    frames.clear(); // Xóa sạch map
+//}
 int Animation::getFrameCount(Direction dir) const {
     return frames.at(dir).size();
 }
