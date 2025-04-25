@@ -32,6 +32,7 @@ Nếu bạn đã từng chơi Bomberman, bạn sẽ cảm thấy quen thuộc v�
 Các *Item* cũng được giấu phía sau Brick và chỉ hiện ra khi Brick bị phá hủy. Bomber có thể sử dụng Item bằng cách di chuyển vào vị trí của Item. Thông tin về chức năng của các Item được liệt kê như dưới đây:
 - ![](res/sprites/powerup_speed.png) *SpeedItem* Khi sử dụng Item này, Bomber sẽ được tăng vận tốc di chuyển thêm một giá trị thích hợp
 - ![](res/sprites/powerup_bombs.png) *BombItem* Thông thường, nếu không có đối tượng Bomb nào đang trong trạng thái kích hoạt, Bomber sẽ được đặt và kích hoạt duy nhất một đối tượng Bomb. Item này giúp tăng số lượng Bomb có thể đặt thêm một.
+- ![](res/sprites/powerup_detonator.png) *DetonatorItem* Khi player sử dụng Items này, Bomber sẽ được miễn dịch với tất cả va chạm với enemy, với boom, được coi như là bất tử trong vài giây
 
 Có nhiều loại Enemy trong Bomberman:
 - ![](res/sprites/oneal_left1.png) *Oneal* là Enemy đơn giản nhất, di chuyển ngẫu nhiên với vận tốc cố định
