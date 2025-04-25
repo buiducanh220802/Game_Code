@@ -88,6 +88,7 @@ bool initSDL(SDL_Window*& window, SDL_Renderer*& renderer) {
 
     return true;
 }
+// dọn dẹp tài nguyên
 void cleanup(SDL_Window* window, SDL_Renderer* renderer) {
     Mix_FreeMusic(backgroundMusic);
     Mix_FreeChunk(explosionSound);
@@ -107,7 +108,7 @@ const int FRAME_DELAY = 1000 / 60; // Giới hạn 60 FPS
 
 // Biến toàn cục
 std::vector<std::unique_ptr<Enemy>> enemies;
-std::vector<Bomb> bombs;
+std::vector<std::unique_ptr<Bomb>> bombs;
 bool running = true;
 bool startGame = false;
 bool isGameOver = false;
@@ -182,6 +183,7 @@ void handleEvents() {
 // Kiểm tra nếu người chơi đến cổng portal
 void checkPortal() {
     if (player.reachedPortal(map, enemies)) {
+        std::cout << "Portal reached! Moving to next level...\n";  // Log khi người chơi vào cổng portal
         level++;
         if (level > MAX_LEVELS) {
             std::cout << "🎉 Congratulations! You won! 🎉" << std::endl;
@@ -193,21 +195,21 @@ void checkPortal() {
         map.loadFromFile(RES_PATH + "levels/Level" + std::to_string(level) + ".txt");
 
         // Xóa enemy cũ và tạo enemy mới theo map
-        enemies.clear();
-        for (int row = 0; row < map.getHeight(); ++row) {
-            for (int col = 0; col < map.getWidth(); ++col) {
-                if (map.getTile(col, row) == ONEAL) {
-                    enemies.emplace_back(std::make_unique<Enemy>(col, row));
-                    enemies.back()->init(renderer,"oneal");
-                    //std::cout << "Spawned ONEAL at (" << col << ", " << row << ")" << std::endl;
-                }
-                else if (map.getTile(col, row) == KONDORIA) {
-                    enemies.emplace_back(std::make_unique<Enemy>(col, row));
-                    enemies.back()->init(renderer,"kondoria");                   
-                    //std::cout << "Spawned KONDORIA at (" << col << ", " << row << ")" << std::endl;
-                }
-            }
-        }
+        //enemies.clear();
+        //for (int row = 0; row < map.getHeight(); ++row) {
+        //    for (int col = 0; col < map.getWidth(); ++col) {
+        //        if (map.getTile(col, row) == ONEAL) {
+        //            enemies.emplace_back(std::make_unique<Enemy>(col, row));
+        //            enemies.back()->init(renderer,"oneal");
+        //            //std::cout << "Spawned ONEAL at (" << col << ", " << row << ")" << std::endl;
+        //        }
+        //        else if (map.getTile(col, row) == KONDORIA) {
+        //            enemies.emplace_back(std::make_unique<Enemy>(col, row));
+        //            enemies.back()->init(renderer,"kondoria");                   
+        //            //std::cout << "Spawned KONDORIA at (" << col << ", " << row << ")" << std::endl;
+        //        }
+        //    }
+        //}
         //std::cout << "Total enemies: " << enemies.size() << std::endl;
         player.resetPosition();
     }
@@ -255,10 +257,13 @@ void gameLoop() {
                     }
                 }
                 for (auto& bomb : bombs) {
-                    if (bomb.isActive()) {
-                        bomb.update();
+                    if (bomb->isActive()) {
+                        bomb->update();
                     }
                 }
+                bombs.erase(std::remove_if(bombs.begin(), bombs.end(),
+                    []( const std::unique_ptr<Bomb>& b) { return !b->isActive() && b->isFinished(); }),
+                    bombs.end());
                 for (auto& enemy : enemies) {
                     enemy->update(map);
                 }
@@ -276,8 +281,8 @@ void gameLoop() {
                     map.render(renderer, 0, 0);
                     player.render(renderer);
                     for (auto& bomb : bombs) {
-                        if (bomb.isActive()) {
-                            bomb.render(renderer);
+                        if (bomb->isActive()) {
+                            bomb->render(renderer);
                         }
                     }
                     for (auto& enemy : enemies) {

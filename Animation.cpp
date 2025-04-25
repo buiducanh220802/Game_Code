@@ -1,5 +1,6 @@
 ﻿#include "Animation.h"
 #include <iostream>
+
 Animation::Animation() : currentDirection(DOWN), currentFrame(0), frameDelay(5), frameTimer(0) {}
 // khởi tạo Animation với các giá trị mặc định gồm hướng mặc định ban đầu, frame hiện tại, thời gian delay giữa các frame, đếm thời gian giữa các frame
 // độ trễ giữa các frame tức là cứ n lần update() thì mới đổ frame mới
@@ -41,22 +42,6 @@ void Animation::render(SDL_Renderer* renderer, int x, int y) {
         SDL_RenderCopy(renderer, frames[currentDirection][currentFrame], nullptr, &dstRect);
 	} // sử dụng RenderCopy để vẽ frame hiện tại lên màn hình
 }
-//void Animation::render(SDL_Renderer* renderer, int x, int y) {
-//    if (frames[currentDirection].empty()) {
-//        std::cerr << "Error: No frames to render for direction " << currentDirection << std::endl;
-//        return;
-//    }
-//
-//    SDL_Rect destRect = { x, y, 32, 32 };
-//
-//    if (SDL_RenderCopy(renderer, frames[currentDirection][currentFrame], nullptr, &destRect) != 0) {
-//        std::cerr << "SDL_RenderCopy failed: " << SDL_GetError() << std::endl;
-//    }
-//    else {
-//        std::cout << "Rendering frame " << currentFrame << " for direction " << currentDirection
-//            << " at (" << x << ", " << y << ")" << std::endl;
-//    }
-//}
 
 // cập nhật các hướng di chuyển 
 void Animation::setDirection(Direction dir) {
@@ -77,18 +62,7 @@ void Animation::reset() {
     currentFrame = 0;
     frameTimer = 0;
 }
-//void Animation::cleanUp() {
-//    // Duyệt qua tất cả các hướng và giải phóng các texture
-//    for (auto& pair : frames) {
-//        for (SDL_Texture* texture : pair.second) {
-//            if (texture) {
-//                SDL_DestroyTexture(texture); // Giải phóng từng texture
-//            }
-//        }
-//        pair.second.clear(); // Xóa tất cả các frame trong vector
-//    }
-//    frames.clear(); // Xóa sạch map
-//}
+
 int Animation::getFrameCount(Direction dir) const {
     return frames.at(dir).size();
 }

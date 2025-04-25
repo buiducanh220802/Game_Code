@@ -5,7 +5,7 @@
 #include <SDL_image.h>
 #include <SDL_mixer.h>
 #include <vector>
-#include <memory>
+#include <memory>                       // dùng smart pointer (unique_ptr) --> tham khảo các nguồn để quản lý đươc enemy di chuyển
 #include "Animation.h"
 #include "Map.h"
 #include "Enemy.h"
@@ -14,19 +14,20 @@
 class Bomb {
 public:
     // Constructors and Destructor
-    Bomb();  // Default constructor
+    Bomb();  
+    // Constructor có tham số để truyền các đối tượng liên quan
     Bomb(SDL_Renderer* renderer, Map* map, Player* player, std::vector<std::unique_ptr<Enemy>>& enemies);
-    ~Bomb();
+    ~Bomb(); // Default constructor
 
     // Public Methods
-    void place(int px, int py);  // Đặt bom tại tọa độ (px, py)
+    void place(int px, int py);  // Đặt bom tại tọa độ lưới (px, py)
     void update();               // Cập nhật trạng thái bom
     void render(SDL_Renderer* renderer);  // Vẽ bom và hiệu ứng nổ
     bool isActive() const { return active; }  // Kiểm tra bom có đang hoạt động không
     void checkExplosionHit();  // Kiểm tra va chạm với Enemy và Player
     void explode();            // Kích hoạt vụ nổ của bom
-    void resetExplosion();
-    bool isFinished() const;
+    void resetExplosion();      // reset lại trạng thái sau vụ nổ
+    bool isFinished() const;    // kiểm tra xme hiệu ứng nổ đã kết thúc chưa
 
 
     // Getters

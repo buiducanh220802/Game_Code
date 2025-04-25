@@ -7,6 +7,12 @@ const int TILE_SIZE = 32;
 // constructor demo
 Bomb::Bomb(SDL_Renderer* renderer, Map* map, Player* player, std::vector<std::unique_ptr<Enemy>>& enemies)
     : map(map), player(player), enemies(enemies), exploded(false), active(false), timer(0) {
+    bombTexture = IMG_LoadTexture(renderer, "D:/Project_1/x64/Debug/res/sprites/bomb.png");
+    if (!bombTexture) {
+        std::cerr << "Failed to load bomb texture: " << IMG_GetError() << std::endl;
+        return ;
+    }
+
 
     if (!renderer) {
         std::cerr << "Invalid renderer passed to Bomb constructor" << std::endl;
@@ -35,11 +41,6 @@ Bomb::~Bomb() {
 
 // Tải tất cả texture cho bom và vụ nổ
 bool Bomb::loadTextures(SDL_Renderer* renderer) {
-    bombTexture = IMG_LoadTexture(renderer, "D:/Project_1/x64/Debug/res/sprites/bomb.png");
-    if (!bombTexture) {
-        std::cerr << "Failed to load bomb texture: " << IMG_GetError() << std::endl;
-        return false;
-    }
 
     // Load các texture cho hiệu ứng nổ
     for (int i = 1; i <= 3; ++i) {
@@ -93,10 +94,13 @@ void Bomb::render(SDL_Renderer* renderer) {
         return;
     }
     if (!active) {
-		/*std::cerr << "Error: Bomb is not active" << std::endl;*/
+		std::cerr << "Error: Bomb is not active" << std::endl;
 		return;
     }
 
+    if (!bombTexture) {
+        std::cerr << "Render error: bombTexture is NULL\n";
+    }
     SDL_Rect bombRect = { x, y, 32, 32 };
 
     if (!exploded) {

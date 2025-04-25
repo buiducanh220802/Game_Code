@@ -1,7 +1,7 @@
-
+﻿
 #ifndef DIRECTION_H
 #define DIRECTION_H
-
+// các hướng phụ trợ cho animation, di chuyển của player và enemy
 enum Direction {
     UP,
     DOWN,

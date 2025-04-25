@@ -95,6 +95,7 @@ void Player::update(Map& map) {
 
     if (!moving) {
 		checkItemCollision(map); // Kiểm tra va chạm với item
+        
     }
     if (dying) {
         deathTimer--;
@@ -244,12 +245,14 @@ void Player::collectItem(TileType itemType) {
 }
 
 bool Player::reachedPortal(const Map& map, const std::vector<std::unique_ptr<Enemy>>& enemies) {
-    if (map.getTile(x, y) == TileType::PORTAL) {
+    if (map.getTile(posX / TILE_SIZE, posY / TILE_SIZE) == TileType::PORTAL) {
+        std::cout << "Player reached portal at (" << x << ", " << y << ")\n";  // Debug log
         for (const auto& enemy : enemies) {
-            if (enemy->getX() == x && enemy->getY() == y) {
+            if (enemy->getX() == posX && enemy->getY() == posY) {
                 return false;
             }
         }
+        std::cout << "Portal is clear, player can pass.\n";  // Debug log
         return true;
     }
     return false;
@@ -263,20 +266,20 @@ void Player::resetPosition() {
     isDead = false;
 }
 
-void Player::handleBombInput(const Uint8* keyState, std::vector<Bomb>& bombs, Map& map, SDL_Renderer* renderer, std::vector<std::unique_ptr<Enemy>>& enemies) {
+void Player::handleBombInput(const Uint8* keyState, std::vector<std::unique_ptr<Bomb>>& bombs, Map& map, SDL_Renderer* renderer, std::vector<std::unique_ptr<Enemy>>& enemies) {
     if (keyState[SDL_SCANCODE_SPACE]) {
         placeBomb(map, bombs, renderer, enemies);
     }
 }
 
-void Player::placeBomb(Map& map, std::vector<Bomb>& bombs, SDL_Renderer* renderer, std::vector<std::unique_ptr<Enemy>>& enemies) {
+void Player::placeBomb(Map& map, std::vector<std::unique_ptr<Bomb>>& bombs, SDL_Renderer* renderer, std::vector<std::unique_ptr<Enemy>>& enemies) {
 
     std::pair<int, int> playerPos = getPosition(); // lấy vị trí người chơi
     int bombX = playerPos.first / 32;
     int bombY = playerPos.second / 32;
     // Kiểm tra xem đã có bom tại vị trí này chưa
     for (const auto& bomb : bombs) {
-        if (bomb.isActive() && bomb.getGridX() == bombX && bomb.getGridY() == bombY) {
+        if (bomb->isActive() && bomb->getGridX() == bombX && bomb->getGridY() == bombY) {
            /* std::cout << "Bomb already exists at (" << bombX << ", " << bombY << ")\n";*/
             return;
         }
@@ -285,8 +288,8 @@ void Player::placeBomb(Map& map, std::vector<Bomb>& bombs, SDL_Renderer* rendere
     // Kiểm tra nếu Player có thể đặt bom tại vị trí này
     if (bombCount > 0 && map.getTile(bombX, bombY) == GRASS) {
         // Tạo bom mới và thêm vào danh sách
-        bombs.emplace_back(renderer, &map, this, enemies);  // Chú ý truyền đúng tham số
-        bombs.back().place(bombX, bombY); // Đặt bom vào vị trí
+        bombs.push_back(std::make_unique<Bomb>(renderer, &map, this, enemies));  // Chú ý truyền đúng tham số
+        bombs.back()->place(bombX, bombY); // Đặt bom vào vị trí
 
         bombCount--; // Giảm số lượng bom của Player
 

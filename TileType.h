@@ -1,7 +1,7 @@
-
+﻿
 #ifndef TILETYPE_H
 #define TILETYPE_H
-
+// Tile map các đối tượng liên quan hỗ trợ cho Map
 enum TileType {
 	GRASS,
 	WALL,

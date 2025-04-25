@@ -11,7 +11,7 @@ Enemy::Enemy(int startX, int startY) {
     posY = static_cast<float>(startY * TILE_SIZE);
 	_targetX = posX;
 	_targetY = posY;
-    speed = 1.0f;
+    speed = 0.5f;
     direction = static_cast<Direction>(rand() % 4); // Chọn hướng ngẫu nhiên ban đầu
     moving = false;
     alive = true;
