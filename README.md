@@ -45,4 +45,8 @@ Có nhiều loại Enemy trong Bomberman:
 - Khi các Flame xuất hiện, nếu có một đối tượng thuộc loại Brick/Wall nằm trên vị trí một trong các Flame thì độ dài Flame đó sẽ được giảm đi để sao cho Flame chỉ xuất hiện đến vị trí đối tượng Brick/Wall theo hướng xuất hiện. Lúc đó chỉ có đối tượng Brick/Wall bị ảnh hưởng bởi Flame, các đối tượng tiếp theo không bị ảnh hưởng. Còn nếu vật cản Flame là một đối tượng Bomb khác thì đối tượng Bomb đó cũng sẽ nổ ngay lập tức.
 Bomberman không chỉ là một trò chơi điện tử, mà còn là một phần ký ức tuổi thơ của nhiều thế hệ người chơi. Với lối chơi đơn giản nhưng đầy thách thức, Bomberman đã và đang mang lại những giây phút giải trí tuyệt vời và những trận đấu kịch tính cho người chơi trên toàn thế giới. Dù bạn là người mới bắt đầu hay là một fan hâm mộ lâu năm, Bomberman luôn có điều gì đó thú vị để khám phá và trải nghiệm.
 
+Trên cơ sở tham khảo về icon và đồ họa đã sử dụng trong game từ: https://github.com/bqcuong/bomberman-starter
+Nhưng đã phát triển và update thêm những tính năng để tạo các hiệu ứng sinh động, thêm phần gần gũi hơn với người chơi, tạo cảm giác chinh phục, lí thú, thỏa mãn cho người chơi.
+
+
 Hãy cùng tham gia vào thế giới của Bomberman, nơi bạn có thể thử thách bản thân, cạnh tranh với bạn bè và tận hưởng những khoảnh khắc vui vẻ không thể nào quên. Chúc bạn có những giờ phút chơi game thật tuyệt vời và đầy niềm vui!
