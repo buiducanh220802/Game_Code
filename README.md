@@ -51,7 +51,7 @@ Bomberman không chỉ là một trò chơi điện tử, mà còn là một ph�
 - Các tấm ảnh background được tạo nên bởi AI tạo ảnh bằng văn bản.
 - Sound nhạc phát khi có Menu game được tham khảo từ: https://www.youtube.com/watch?v=XS-Balr3B0U 
 - Link googleDrive mô tả chi tiết tất cả source code của game cùng các tính năng: https://drive.google.com/drive/folders/1G-6ojURmIlz9KRF_vmoA1lf40WlIlY3c
-Nhưng đã phát triển và update thêm những tính năng để tạo các hiệu ứng sinh động, thêm phần gần gũi hơn với người chơi, tạo cảm giác chinh phục, lí thú, thỏa mãn cho người chơi.
+- Nhưng đã phát triển và update thêm những tính năng để tạo các hiệu ứng sinh động, thêm phần gần gũi hơn với người chơi, tạo cảm giác chinh phục, lí thú, thỏa mãn cho người chơi.
 
 
 Hãy cùng tham gia vào thế giới của Bomberman, nơi bạn có thể thử thách bản thân, cạnh tranh với bạn bè và tận hưởng những khoảnh khắc vui vẻ không thể nào quên. Chúc bạn có những giờ phút chơi game thật tuyệt vời và đầy niềm vui!
