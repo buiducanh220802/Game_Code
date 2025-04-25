@@ -78,6 +78,9 @@ void Player::init(SDL_Renderer* renderer) {
 
 void Player::update(Map& map) {
     if (isDead) return;
+    if (invincibilityTimer > 0) {
+        invincibilityTimer--;
+    }
     const Uint8* keys = SDL_GetKeyboardState(NULL); // nhận trạng thái từ bàn phím
     if (!keys) return; // Bảo vệ tránh lỗi
     /*std::cout << "Updating player..." << std::endl;*/
@@ -229,8 +232,8 @@ void Player::collectItem(TileType itemType) {
     case BOMB_ITEM:
 		bombCount = std::min(bombCount + 1, 5); // Giới hạn số bom tối đa mà người chơi có thể mang theo
         break;
-    case FLAME_ITEM:
-		flameRange = std::min(flameRange + 1, 5); // Giới hạn phạm vi lửa tối đa
+    case DETONATOR_ITEM:
+        invincibilityTimer = 240; // Thời gian miễn dịch với mọi va chạm
         break;
     case SPEED_ITEM:
         speed = std::min(speed + 0.5f, 5.0f); // Giới hạn tốc độ tối đa có thể đi
@@ -312,7 +315,7 @@ std::pair<float, float> Player::getPosition() const {
 }
 void Player::checkCollisionWithEnemies(const std::vector<std::unique_ptr<Enemy>>& enemies) {
     if (isDead) return;
-
+    if (invincibilityTimer > 0) return;
     SDL_Rect playerRect = { posX, posY, 32, 32 };
 
     for (const auto& enemy : enemies) {
@@ -337,7 +340,7 @@ void Player::checkItemCollision(Map& map) {
     int tileX = static_cast<int>(posX) / TILE_SIZE;
     int tileY = static_cast<int>(posY) / TILE_SIZE;
     TileType tile = map.getTile(tileX, tileY);
-	if (tile == BOMB_ITEM || tile == FLAME_ITEM || tile == SPEED_ITEM || tile == PORTAL) {
+	if (tile == BOMB_ITEM || tile == DETONATOR_ITEM || tile == SPEED_ITEM || tile == PORTAL) {
 		collectItem(tile);
 		map.removeItemAt(tileX, tileY); // Xóa item sau khi thu thập
 		if (pickupSound) {
@@ -349,3 +352,4 @@ void Player::checkItemCollision(Map& map) {
 		//std::cout << "Collected item at (" << tileX << ", " << tileY << ")\n";
 	}
 }
+

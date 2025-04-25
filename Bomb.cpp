@@ -219,6 +219,7 @@ void Bomb::checkExplosionHit() {
 
     for (auto& tile : explosionTiles) {
         if (playerGridX == tile.first && playerGridY == tile.second) {
+            if (player->getImmortal() == 0)
             player->die();
             break;
         }

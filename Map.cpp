@@ -8,7 +8,7 @@ const int HUD_HEIGHT = 32;
 
 Map::Map() // các constructor để khởi tạo các biến thành viên
     : grassTexture(nullptr), wallTexture(nullptr), brickTexture(nullptr),
-    portalTexture(nullptr), bombItemTexture(nullptr), flameItemTexture(nullptr),
+    portalTexture(nullptr), bombItemTexture(nullptr), detonatorItemTexture(nullptr),
     speedItemTexture(nullptr), onealTexture(nullptr), kondoriaTexture(nullptr),
     bomberTexture(nullptr) {
 }
@@ -18,12 +18,12 @@ Map::~Map() { // giải phóng texture
     SDL_DestroyTexture(brickTexture);
     SDL_DestroyTexture(portalTexture);
     SDL_DestroyTexture(bombItemTexture);
-    SDL_DestroyTexture(flameItemTexture);
+    SDL_DestroyTexture(detonatorItemTexture);
     SDL_DestroyTexture(speedItemTexture);
     SDL_DestroyTexture(onealTexture);
     SDL_DestroyTexture(kondoriaTexture);
     SDL_DestroyTexture(bomberTexture);
-    /*SDL_DestroyTexture(bombTexture);*/
+    
 }
 // tải bản đồ từ file đã có .txt
 void Map::loadFromFile(const std::string& filename) {
@@ -64,7 +64,7 @@ void Map::loadFromFile(const std::string& filename) {
             case '1': grid[i][j] = ONEAL; break;
             case '2': grid[i][j] = KONDORIA; break;
             case 'b': grid[i][j] = BRICK; hiddenItems[{i, j}] = BOMB_ITEM; break;
-            case 'f': grid[i][j] = BRICK; hiddenItems[{i, j}] = FLAME_ITEM; break;
+            case 'f': grid[i][j] = BRICK; hiddenItems[{i, j}] = DETONATOR_ITEM; break;
             case 's': grid[i][j] = BRICK; hiddenItems[{i, j}] = SPEED_ITEM; break;
             case 'x': grid[i][j] = BRICK; hiddenItems[{i, j}] = PORTAL; break;
             default: grid[i][j] = GRASS;
@@ -78,7 +78,7 @@ bool Map::loadTextures(SDL_Renderer* renderer) {
     std::vector<std::pair<SDL_Texture**, std::string>> textures = {
         {&grassTexture, "grass.png"}, {&wallTexture, "wall.png"},
         {&brickTexture, "brick.png"}, {&portalTexture, "portal.png"},
-        {&bombItemTexture, "powerup_bombs.png"}, {&flameItemTexture, "powerup_flamepass.png"},
+        {&bombItemTexture, "powerup_bombs.png"}, {&detonatorItemTexture, "powerup_detonator.png"},
         {&speedItemTexture, "powerup_speed.png"}, {&onealTexture, "oneal_right1.png"}
     };
 
@@ -120,7 +120,7 @@ void Map::render(SDL_Renderer* renderer, int offsetX, int offsetY) {
             // Vẽ vật phẩm nếu không còn gạch
             switch (hiddenItems[{row, col}]) {
             case BOMB_ITEM: texture = bombItemTexture; break;
-            case FLAME_ITEM: texture = flameItemTexture; break;
+            case DETONATOR_ITEM: texture = detonatorItemTexture; break;
             case SPEED_ITEM: texture = speedItemTexture; break;
             case PORTAL: texture = portalTexture; break;
             default: texture = nullptr; break;
@@ -178,7 +178,7 @@ bool Map::isBrick(int x, int y) const {
 }
 
 void Map::removeItemAt(int x, int y) {
-    if (grid[y][x] == BOMB_ITEM || grid[y][x] == FLAME_ITEM ||
+    if (grid[y][x] == BOMB_ITEM || grid[y][x] == DETONATOR_ITEM ||
         grid[y][x] == SPEED_ITEM ) {
             grid[y][x] = GRASS;
             hiddenItems.erase({ y,x });

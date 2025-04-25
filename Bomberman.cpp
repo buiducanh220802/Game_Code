@@ -16,6 +16,7 @@
 #include "Items.h"
 #include "EnemyTextureManager.h"
 #include "Menu.h"
+#include "LevelSelect.h"
 
 const int TILE_SIZE = 32;
 const int MAP_SIZE = 17;
@@ -131,6 +132,17 @@ bool initGame() {
         return false;
     }
     else {
+        LevelSelect levelselect(renderer, RES_PATH);
+        int selectedLevel = 0; // khởi tạo biến lưu
+        if (levelselect.show()) {
+            selectedLevel = levelselect.getSelectedLevel(); // lấy cấp độ đã chọn
+        }
+        
+        if (selectedLevel == 0) {
+            running  = false;
+            return false;
+        }
+        level = selectedLevel;
         startGame = true;
     }
 

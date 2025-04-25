@@ -43,7 +43,7 @@ private:
     SDL_Texture* brickTexture;
     SDL_Texture* portalTexture;
     SDL_Texture* bombItemTexture;
-    SDL_Texture* flameItemTexture;
+    SDL_Texture* detonatorItemTexture;
     SDL_Texture* speedItemTexture;
     SDL_Texture* onealTexture;
     SDL_Texture* kondoriaTexture;

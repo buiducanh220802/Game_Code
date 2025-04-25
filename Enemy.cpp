@@ -43,25 +43,6 @@ void Enemy::init(SDL_Renderer* renderer,const std::string& enemyType) {
         }
     }
 
-    //const std::string directions[] = { "right", "left", "up", "down" };
-    //const Direction dirEnum[] = { RIGHT, LEFT, UP, DOWN };
-    //for (int i = 0; i < 4; i++) {
-    //    for (int frame = 1; frame <= 3; frame++) {
-    //        std::string path = "D:/Project_1/x64/Debug/res/sprites/" + enemyType + "_" + directions[i] + std::to_string(frame) + ".png";
-    //        SDL_Texture* texture = IMG_LoadTexture(renderer, path.c_str());
-    //        if (!texture) {
-    //            std::cout << "❌ Failed to load texture: " << IMG_GetError() << std::endl;
-    //        }
-    //        if (texture) {
-    //            walkAnimation.addFrame(dirEnum[i], texture);
-    //            //std::cout << "Added frame for dir " << directions[i] << ": " << path << "\n";
-    //        }
-    //        else {
-    //            SDL_Log("Failed to load texture: %s, Error: %s", path.c_str(), SDL_GetError());
-    //        }
-    //    }
-    //}
-    //
     walkAnimation.setDirection(direction);
     if (!walkAnimation.getFirstFrame(RIGHT)) {
         std::cout << "Error: Missing texture for RIGHT direction!" << std::endl;

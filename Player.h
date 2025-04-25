@@ -25,7 +25,7 @@ private:
     int bombCount;
     int flameRange;
     float _targetX, _targetY; // Tọa độ mục tiêu di chuyển
-    //const std::vector<std::unique_ptr<Enemy>>& enemies;
+    int invincibilityTimer; // thời gian miễn dịch bất tử
 
     SDL_Texture* playerTexture;
     Direction direction;
@@ -51,6 +51,7 @@ public:
     void die(); // thêm hàm để xử lý khi bị tiêu diệt
     int getX() const { return posX; } // lấy tọa độ lưới ô vuông của người chơi
     int getY() const { return posY; }
+    int getImmortal() const { return invincibilityTimer; }
     bool isAlive() const { return !isDead; }
     void increaseBombCount();
     void checkCollisionWithEnemies(const std::vector<std::unique_ptr<Enemy>>& enemies);
