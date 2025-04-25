@@ -54,4 +54,4 @@ Bomberman không chỉ là một trò chơi điện tử, mà còn là một ph�
 Nhưng đã phát triển và update thêm những tính năng để tạo các hiệu ứng sinh động, thêm phần gần gũi hơn với người chơi, tạo cảm giác chinh phục, lí thú, thỏa mãn cho người chơi.
 
 
-## Hãy cùng tham gia vào thế giới của Bomberman, nơi bạn có thể thử thách bản thân, cạnh tranh với bạn bè và tận hưởng những khoảnh khắc vui vẻ không thể nào quên. Chúc bạn có những giờ phút chơi game thật tuyệt vời và đầy niềm vui!
+Hãy cùng tham gia vào thế giới của Bomberman, nơi bạn có thể thử thách bản thân, cạnh tranh với bạn bè và tận hưởng những khoảnh khắc vui vẻ không thể nào quên. Chúc bạn có những giờ phút chơi game thật tuyệt vời và đầy niềm vui!
