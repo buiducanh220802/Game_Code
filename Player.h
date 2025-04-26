@@ -33,6 +33,7 @@ private:
     Animation deathAnimation;       // Animation khi player die
 	Mix_Chunk* deathSound; // Âm thanh khi player chết
 	Mix_Chunk* pickupSound; // Âm thanh khi thu thập vật phẩm
+    Mix_Chunk* portalSound; // Âm thanh khi player qua cổng portal
 
 public:
     Player(Map* map); // constructor

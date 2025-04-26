@@ -193,23 +193,26 @@ void checkPortal() {
 
         timeLeft = 150;
         map.loadFromFile(RES_PATH + "levels/Level" + std::to_string(level) + ".txt");
+        map.loadTextures(renderer);
+
+        EnemyTextureManager::cleanUp();
 
         // Xóa enemy cũ và tạo enemy mới theo map
-        //enemies.clear();
-        //for (int row = 0; row < map.getHeight(); ++row) {
-        //    for (int col = 0; col < map.getWidth(); ++col) {
-        //        if (map.getTile(col, row) == ONEAL) {
-        //            enemies.emplace_back(std::make_unique<Enemy>(col, row));
-        //            enemies.back()->init(renderer,"oneal");
-        //            //std::cout << "Spawned ONEAL at (" << col << ", " << row << ")" << std::endl;
-        //        }
-        //        else if (map.getTile(col, row) == KONDORIA) {
-        //            enemies.emplace_back(std::make_unique<Enemy>(col, row));
-        //            enemies.back()->init(renderer,"kondoria");                   
-        //            //std::cout << "Spawned KONDORIA at (" << col << ", " << row << ")" << std::endl;
-        //        }
-        //    }
-        //}
+        enemies.clear();
+        for (int row = 0; row < map.getHeight(); ++row) {
+            for (int col = 0; col < map.getWidth(); ++col) {
+                if (map.getTile(col, row) == ONEAL) {
+                    enemies.emplace_back(std::make_unique<Enemy>(col, row));
+                    enemies.back()->init(renderer,"oneal");
+                    //std::cout << "Spawned ONEAL at (" << col << ", " << row << ")" << std::endl;
+                }
+                else if (map.getTile(col, row) == KONDORIA) {
+                    enemies.emplace_back(std::make_unique<Enemy>(col, row));
+                    enemies.back()->init(renderer,"kondoria");                   
+                    //std::cout << "Spawned KONDORIA at (" << col << ", " << row << ")" << std::endl;
+                }
+            }
+        }
         //std::cout << "Total enemies: " << enemies.size() << std::endl;
         player.resetPosition();
     }

@@ -31,9 +31,15 @@ void Player::init(SDL_Renderer* renderer) {
     if (!deathSound) {
         std::cerr << "❌ Failed to load player death sound: " << Mix_GetError() << std::endl;
     }
+
 	pickupSound = Mix_LoadWAV("D:/Project_1/x64/Debug/res/sounds/Item.wav");
     if (!pickupSound) {
         std::cerr << "❌ Failed to load pickup sound: " << Mix_GetError() << std::endl;
+    }
+
+    portalSound = Mix_LoadWAV("D:/Project_1/x64/Debug/res/sounds/Portal.wav");
+    if (!portalSound) {
+        std::cerr << "❌ Failed to load portal sound : " << Mix_GetError() << std::endl;
     }
     std::string spritePath = "D:/Project_1/x64/Debug/res/sprites/";
 
@@ -248,7 +254,7 @@ bool Player::reachedPortal(const Map& map, const std::vector<std::unique_ptr<Ene
     if (map.getTile(posX / TILE_SIZE, posY / TILE_SIZE) == TileType::PORTAL) {
         std::cout << "Player reached portal at (" << x << ", " << y << ")\n";  // Debug log
         for (const auto& enemy : enemies) {
-            if (enemy->getX() == posX && enemy->getY() == posY) {
+            if (enemy->isAlive()) {
                 return false;
             }
         }
@@ -343,16 +349,26 @@ void Player::checkItemCollision(Map& map) {
     int tileX = static_cast<int>(posX) / TILE_SIZE;
     int tileY = static_cast<int>(posY) / TILE_SIZE;
     TileType tile = map.getTile(tileX, tileY);
-	if (tile == BOMB_ITEM || tile == DETONATOR_ITEM || tile == SPEED_ITEM || tile == PORTAL) {
-		collectItem(tile);
-		map.removeItemAt(tileX, tileY); // Xóa item sau khi thu thập
-		if (pickupSound) {
-			Mix_PlayChannel(-1, pickupSound, 0);
-		}
-		else {
-			//std::cerr << "❌ Failed to play pickup sound: " << Mix_GetError() << std::endl;
-		}
-		//std::cout << "Collected item at (" << tileX << ", " << tileY << ")\n";
-	}
+    if (tile == BOMB_ITEM || tile == DETONATOR_ITEM || tile == SPEED_ITEM) {
+        collectItem(tile);
+        map.removeItemAt(tileX, tileY); // Xóa item sau khi thu thập
+        if (pickupSound) {
+            Mix_PlayChannel(-1, pickupSound, 0);
+        }
+        else {
+            //std::cerr << "❌ Failed to play pickup sound: " << Mix_GetError() << std::endl;
+        }
+        //std::cout << "Collected item at (" << tileX << ", " << tileY << ")\n";
+    }
+    else if (tile == PORTAL) {
+        collectItem(tile);
+        map.removeItemAt(tileX, tileY);
+        if (portalSound) {
+            Mix_PlayChannel(-1, portalSound, 0);
+        }
+        else {
+            //std::cerr << "❌ Failed to play portal sound: " << Mix_GetError() << std::endl;
+        }
+    }
 }
 
