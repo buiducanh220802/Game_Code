@@ -182,6 +182,6 @@ void Map::removeItemAt(int x, int y) {
         grid[y][x] == SPEED_ITEM ) {
             grid[y][x] = GRASS;
             hiddenItems.erase({ y,x });
-            std::cout << "Items reomved" << std::endl;
+            //std::cout << "Items reomved" << std::endl;
         }
 }

@@ -115,7 +115,9 @@ void Bomb::render(SDL_Renderer* renderer) {
 		explosionCenter.setDirection(CENTER);
         explosionCenter.render(renderer, x, y);
         renderExplosion(renderer);
+        checkExplosionHit();
     }
+    
 }
 
 // Vẽ các hướng của vụ nổ

@@ -1,7 +1,7 @@
 ﻿#include "Animation.h"
 #include <iostream>
 
-Animation::Animation() : currentDirection(DOWN), currentFrame(0), frameDelay(5), frameTimer(0) {}
+Animation::Animation() : currentDirection(DOWN), currentFrame(0), frameDelay(3), frameTimer(0) {}
 // khởi tạo Animation với các giá trị mặc định gồm hướng mặc định ban đầu, frame hiện tại, thời gian delay giữa các frame, đếm thời gian giữa các frame
 // độ trễ giữa các frame tức là cứ n lần update() thì mới đổ frame mới
 Animation::~Animation() {

@@ -16,7 +16,7 @@ Player::Player(Map* map) {
     posY = y * TILE_SIZE;
     _targetX = posX;  // Đặt mục tiêu ban đầu
     _targetY = posY;
-    speed = 1.0f;
+    speed = 1.25f;
     moving = false;
     isDead = false;
 	dying = false;
@@ -269,6 +269,8 @@ void Player::resetPosition() {
     y = startY;
     posX = x * TILE_SIZE;
     posY = y * TILE_SIZE;
+    speed = 1.25f;
+    bombCount = 1;
     isDead = false;
 }
 

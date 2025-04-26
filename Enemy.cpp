@@ -11,7 +11,7 @@ Enemy::Enemy(int startX, int startY) {
     posY = static_cast<float>(startY * TILE_SIZE);
 	_targetX = posX;
 	_targetY = posY;
-    speed = 0.5f;
+    speed = 0.4f;
     direction = static_cast<Direction>(rand() % 4); // Chọn hướng ngẫu nhiên ban đầu
     moving = false;
     alive = true;
@@ -177,13 +177,13 @@ void Enemy::render(SDL_Renderer* renderer) {
 bool Enemy::die() {
     if (alive) {
         alive = false;
-        std::cout << "Enemy died at (" << x << ", " << y << ")\n";
+        //std::cout << "Enemy died at (" << x << ", " << y << ")\n";
     }
 	if (deathSound) {
 		Mix_PlayChannel(-1, deathSound, 0);
 	}
 	else {
-		std::cerr << "❌ Failed to play enemy death sound: " << Mix_GetError() << std::endl;
+		//std::cerr << "❌ Failed to play enemy death sound: " << Mix_GetError() << std::endl;
 	}
     return alive;
 }
